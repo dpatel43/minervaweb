@@ -1,0 +1,30 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<mat-card>
+  <mat-card-content>
+    <div class="container">
+      <div class="m-2">
+        <label for="fieldId">ID</label>
+        <input [(ngModel)]="field.fieldId" id="fieldId" name="fieldId" placeholder="ID" readonly>
+      </div>
+      <div class="m-2">
+        <label for="name">Name</label>
+        <input id="name" name="name" required placeholder="Name" [(ngModel)]="field.name"/>
+      </div>
+      <div class="m-2">
+        <label for="fieldType">Type</label>
+        <app-minerva-cache-select [cacheGroup]="'FIELD_TYPE'" [(ngModel)]="field.fieldType"></app-minerva-cache-select>
+      </div>
+
+    </div>
+
+    <app-time-field *ngIf="field.fieldType === 'TIME'" [field]="field"></app-time-field>
+    <app-transaction-field *ngIf="field.fieldType === 'TRANSACTION'" [field]="field"></app-transaction-field>
+
+  </mat-card-content>
+</mat-card>

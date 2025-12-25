@@ -1,0 +1,29 @@
+<!-- <mat-table matSort class="table table-sm table-bordered table-hover" matSortActive="staffUserId" matSortDirection="desc" [dataSource]="dataSource">
+  <ng-container matColumnDef="staffUserId">
+    <mat-header-cell mat-sort-header scope="col" *matHeaderCellDef> Staff User Id </mat-header-cell>
+    <mat-cell *matCellDef="let element"> {{element.staffUserId}} </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="firstName">
+    <mat-header-cell mat-sort-header *matHeaderCellDef> First Name </mat-header-cell>
+    <mat-cell *matCellDef="let element"> {{element.firstName}} </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="lastName">
+    <mat-header-cell mat-sort-header *matHeaderCellDef> Last Name </mat-header-cell>
+    <mat-cell *matCellDef="let element"> {{element.lastName}} </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="user.username">
+    <mat-header-cell mat-sort-header *matHeaderCellDef> Username </mat-header-cell>
+    <mat-cell *matCellDef="let element"> {{element.userName}} </mat-cell>
+  </ng-container>
+
+  <mat-header-row class="bg-light" *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="edit(row.staffUserId)"></mat-row>
+</mat-table>
+
+<mat-paginator  [pageSize]="10" [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator> -->
+
+
+
+<app-minerva-table [tableColumns]="tableColumns" [loadFunction]="loadFunction" (onRowClicked)="edit($event.staffUserId)">
+
+</app-minerva-table>

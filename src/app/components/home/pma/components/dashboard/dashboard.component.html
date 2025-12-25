@@ -1,0 +1,46 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<!-- Top Section -->
+<div class="text-white p-3">
+  <form [formGroup]="exportForm" class="form-horizontal">
+    <div class="row">
+      <div class="col">
+        <label for="account">Account</label>
+        <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" id="account"
+                                   name="account" required>
+        </app-minerva-auto-complete>
+      </div>
+      <div class="col">
+        <label for="profile">Profile</label>
+        <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" id="profile"
+                                   name="profile" required>
+        </app-minerva-auto-complete>
+      </div>
+      <div class="col">
+        <mat-form-field>
+          <mat-label>Start Date</mat-label>
+          <input [matDatepicker]="start" formControlName="start" matInput>
+          <mat-datepicker-toggle [for]="start" matIconSuffix></mat-datepicker-toggle>
+          <mat-datepicker #start></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <div class="col">
+        <mat-form-field>
+          <mat-label>End Date</mat-label>
+          <input [matDatepicker]="end" formControlName="end" matInput>
+          <mat-datepicker-toggle [for]="end" matIconSuffix></mat-datepicker-toggle>
+          <mat-datepicker #end></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Center Section (vertically + horizontally centered) -->
+<div class="card-body">
+</div>

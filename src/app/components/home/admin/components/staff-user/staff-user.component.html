@@ -1,0 +1,17 @@
+<mat-card>
+  <mat-card-actions>
+      <input class="mr-2" *ngIf="listMode" type="text" id="search" name="search" />
+      <button class="btn btn-primary btn-sm mr-2" *ngIf="listMode" (click)="retrieve()" type="button">Retrieve</button>
+      <div fxFlex></div>
+      <button class="btn btn-primary btn-sm mr-2" (click)="createNew()" type="button">New</button>
+      <button class="btn btn-primary btn-sm mr-2" *ngIf="detailMode" (click)="list()" type="button">List</button>
+      <button class="btn btn-primary btn-sm mr-2" *ngIf="detailMode" (click)="reload()" type="button">Reload</button>
+  </mat-card-actions>
+  <mat-card-content>
+      <app-staff-user-detail *ngIf="detailMode" [staffUser]="staffUser"></app-staff-user-detail>
+      <app-staff-user-list *ngIf="listMode" (onSelectedIdChange)="edit($event)"></app-staff-user-list>
+  </mat-card-content>
+</mat-card>
+
+
+

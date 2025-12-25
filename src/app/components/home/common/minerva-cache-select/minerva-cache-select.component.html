@@ -1,0 +1,3 @@
+<select name="selectedQuantity" [(ngModel)]="selectedValue" (blur)="onBlur()">
+  <option *ngFor="let option of cacheResults" [value]="option.id">{{option.displayValue}}</option>
+</select>

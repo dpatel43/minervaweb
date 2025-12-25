@@ -1,0 +1,23 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+/* You can add global styles to this file, and also import other style files */
+* {
+  font-size: 12px;
+}
+
+html, body {
+  height: 100%;
+}
+
+.container {
+  display: flex;
+}
+
+
+
+
