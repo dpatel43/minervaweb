@@ -1,0 +1,11 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+export const environment = {
+  production: true,
+  apiServer: 'http://localhost:10000/minervaapi'
+};

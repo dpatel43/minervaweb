@@ -1,0 +1,25 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<mat-card>
+  <div>
+      <label for="begin">Begin</label>
+      <mat-checkbox [checked]="field.fieldProperties['BEGIN'] === 'Y'"
+                    (change)="updateBegin($event.checked)">
+      </mat-checkbox>
+
+      <label for="domain">Domain</label>
+      <app-minerva-cache-select [cacheGroup]="'DOMAIN'" (ngModelChange)="onDomainChange($event)"
+                                [(ngModel)]="field.fieldProperties['DOMAIN']"></app-minerva-cache-select>
+
+    <label for="domainProperty">Domain Property</label>
+      <app-minerva-cache-select [cacheGroup]="selectedDomain"
+                                [(ngModel)]="field.fieldProperties['DOMAIN_PROP']"></app-minerva-cache-select>
+
+  </div>
+</mat-card>
+

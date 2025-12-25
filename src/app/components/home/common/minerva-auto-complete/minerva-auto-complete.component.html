@@ -1,0 +1,21 @@
+<div>
+
+  <mat-form-field appearance="outline">
+    <input matInput placeholder="Search" aria-label="State" [matAutocomplete]="auto" [formControl]="searchResultCtrl">
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSelect($event.option.value)" [displayWith]="displayFn" >
+      <mat-option *ngIf="isLoading" class="is-loading">Loading...</mat-option>
+      <ng-container *ngIf="!isLoading">
+        <mat-option *ngFor="let cacheResult of filteredResults" [value]="cacheResult" sele>
+          {{cacheResult.displayValue}}
+        </mat-option>
+      </ng-container>
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <br>
+
+  <ng-container *ngIf="errorMsg">
+    {{errorMsg}}
+  </ng-container>
+
+</div>

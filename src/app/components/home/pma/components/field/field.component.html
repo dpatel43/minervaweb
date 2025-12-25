@@ -1,0 +1,31 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<form #form="ngForm" (ngSubmit)="save()">
+  <div class="card small">
+    <div class="card-header bg-light">
+      <input class="me-2" id="firstName" name="firstName" placeholder="Search"/>
+      <button (click)="retrieve()" class="btn btn-primary btn-sm me-2 rounded-0" type="button">Retrieve</button>
+      <button (click)="createNew()" class="btn btn-primary btn-sm me-2 rounded-0" type="button">New</button>
+      <button (click)="list()" [disabled]="!detail" class="btn btn-primary btn-sm me-2 rounded-0" type="button">List
+      </button>
+      <button (click)="reload()" [disabled]="!detail" class="btn btn-primary btn-sm me-2 rounded-0" type="button">
+        Reload
+      </button>
+      <button (click)="save()" [disabled]="!detail && !form.dirty" class="btn btn-primary btn-sm me-2 rounded-0"
+              type="submit"
+              type="button">Save
+      </button>
+    </div>
+    <div class="card-body rounded-0">
+      <app-field-detail *ngIf="detail"></app-field-detail>
+      <app-field-list *ngIf="!detail"></app-field-list>
+    </div>
+  </div>
+</form>
+
+

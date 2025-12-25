@@ -1,0 +1,100 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<form [formGroup]="exportForm">
+  <div class="card small">
+    <div class="card-header bg-light">
+      <div class="me-2">
+        <label for="account">Account</label>
+        <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" id="account"
+                                   name="account" required>
+        </app-minerva-auto-complete>
+      </div>
+      <div class="m-2">
+        <label for="profile">Profile</label>
+        <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" id="profile"
+                                   name="profile" required>
+        </app-minerva-auto-complete>
+      </div>
+      <div class="m-2">
+        <mat-form-field>
+          <mat-label>Date</mat-label>
+          <input [matDatepicker]="picker" formControlName="end" matInput>
+          <mat-datepicker-toggle [for]="picker" matIconSuffix></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+      </div>
+      <button (click)="onSubmit()" class="btn btn-primary btn-sm me-2 rounded-0" type="button">Retrieve</button>
+    </div>
+  </div>
+  <div class="card small">
+    <div class="card-body">
+      <table [dataSource]="dataSource" class="mat-elevation-z8" mat-table>
+        <ng-container matColumnDef="name">
+          <th *matHeaderCellDef mat-header-cell>
+            <span [style.paddingLeft.px]="20"> Name </span>
+          </th>
+          <td *matCellDef="let data" mat-cell>
+            <button (click)="treeControl.toggle(data)"
+                    [style.marginLeft.px]="data.level * 16"
+                    [style.visibility]="!data.expandable ? 'hidden' : ''"
+                    mat-icon-button>
+              <mat-icon class="mat-icon-rtl-mirror">
+                {{ treeControl.isExpanded(data) ? 'expand_more' : 'chevron_right' }}
+              </mat-icon>
+            </button>
+
+            {{ data.name }}
+          </td>
+        </ng-container>
+
+
+        <ng-container matColumnDef="1D">
+          <th *matHeaderCellDef mat-header-cell> 1 Day</th>
+          <td *matCellDef="let data"
+              mat-cell> {{ data.pmaExportRow.accountValues['1D']?.BaseTotalRor | number:'.3-3' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="MTD">
+          <th *matHeaderCellDef mat-header-cell> Month To Date</th>
+          <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues.MTD?.BaseTotalRor | number:'.3-3' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="1M">
+          <th *matHeaderCellDef mat-header-cell> Last Month</th>
+          <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues['1M']?.BaseTotalRor | number:'.3-3' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="3M">
+          <th *matHeaderCellDef mat-header-cell> Last Three Month</th>
+          <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues['3M']?.BaseTotalRor | number:'.3-3' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="YTD">
+          <th *matHeaderCellDef mat-header-cell> Year To Date</th>
+          <td *matCellDef="let data"
+              mat-cell> {{ data.pmaExportRow.accountValues['YTD']?.BaseTotalRor | number:'.3-3' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="ITD">
+          <th *matHeaderCellDef mat-header-cell> Inception To Date</th>
+          <td *matCellDef="let data"
+              mat-cell> {{ data.pmaExportRow.accountValues['ITD']?.BaseTotalRor | number:'.3-3' }}
+          </td>
+        </ng-container>
+
+        <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+        <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+      </table>
+    </div>
+  </div>
+</form>

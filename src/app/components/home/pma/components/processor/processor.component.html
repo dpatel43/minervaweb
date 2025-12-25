@@ -1,0 +1,67 @@
+<mat-card>
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+    <mat-card-content>
+
+      <div class="form-row">
+        <!--<div class="form-group col-md-3">
+         <mat-form-field appearance="outline">
+           <input matInput class="form-control" formControlName="account" placeholder="Account">
+           <mat-error *ngIf="userForm.hasError('email')"></mat-error>
+          </mat-form-field>
+        </div>-->
+
+        <div class="form-group col-md-3">
+          <label for="account">Account</label>
+          <app-minerva-auto-complete id="account" name="account" formControlName="account"
+                                     [cacheName]="'accountCache'" required>
+          </app-minerva-auto-complete>
+        </div>
+
+        <div class="form-group col-md-3" formGroupName="range">
+          <mat-form-field appearance="outline">
+            <mat-label>Enter a date range</mat-label>
+            <mat-date-range-input [rangePicker]="picker">
+              <input matStartDate formControlName="start" placeholder="Start date">
+              <input matEndDate formControlName="end" placeholder="End date">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+          </mat-form-field>
+        </div>
+
+
+      </div>
+
+
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button type="submit" class="btn btn-primary btn-sm mr-2">Run Processor</button>
+    </mat-card-actions>
+  </form>
+</mat-card>
+<!--
+<mat-card>
+  <mat-card-content>
+    <div class="form-row">
+      <div class="form-group col-md-3">
+        <input id="account" name="account" readonly placeholder="Account"
+               [(ngModel)]="calculationRequest.accountId">
+      </div>
+
+      <div class="form-group col-md-3">
+        <mat-form-field appearance="outline">
+          <mat-label>Enter a date range</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate placeholder="Start date">
+            <input matEndDate placeholder="End date">
+          </mat-date-range-input>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      </div>
+    </div>
+    <div class="form-row">
+
+    </div>
+  </mat-card-content>
+</mat-card> -->

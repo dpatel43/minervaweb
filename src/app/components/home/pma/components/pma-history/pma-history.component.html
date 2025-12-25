@@ -1,0 +1,159 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<form [formGroup]="exportForm" class="form-horizontal">
+  <div class="row">
+    <div class="col">
+      <label for="account">Account</label>
+      <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" id="account"
+                                 name="account" required>
+      </app-minerva-auto-complete>
+    </div>
+    <div class="col">
+      <label for="profile">Profile</label>
+      <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" id="profile"
+                                 name="profile" required>
+      </app-minerva-auto-complete>
+    </div>
+    <div class="col">
+      <mat-form-field>
+        <mat-label>Start Date</mat-label>
+        <input [matDatepicker]="start" formControlName="start" matInput>
+        <mat-datepicker-toggle [for]="start" matIconSuffix></mat-datepicker-toggle>
+        <mat-datepicker #start></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div class="col">
+      <mat-form-field>
+        <mat-label>End Date</mat-label>
+        <input [matDatepicker]="end" formControlName="end" matInput>
+        <mat-datepicker-toggle [for]="end" matIconSuffix></mat-datepicker-toggle>
+        <mat-datepicker #end></mat-datepicker>
+      </mat-form-field>
+    </div>
+    <div class="col">
+      <label for="fieldType">Type</label>
+      <app-minerva-cache-select [cacheGroup]="'PERIOD'" formControlName="period"></app-minerva-cache-select>
+    </div>
+    <div class="col">
+      <mat-checkbox formControlName="filterSecurities">Filter Securities</mat-checkbox>
+    </div>
+    <div class="col">
+      <button (click)="onSubmit()" class="btn btn-primary btn-sm me-2 rounded-0" type="button">Retrieve</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <table [dataSource]="dataSource" class="mat-elevation-z8" mat-table>
+      <ng-container matColumnDef="name">
+        <th *matHeaderCellDef mat-header-cell>
+          <span [style.paddingLeft.px]="20"> Name </span>
+        </th>
+        <td *matCellDef="let data" mat-cell>
+          <button (click)="treeControl.toggle(data)"
+                  [style.marginLeft.px]="data.level * 16"
+                  [style.visibility]="!data.expandable ? 'hidden' : ''"
+                  mat-icon-button>
+            <mat-icon class="mat-icon-rtl-mirror">
+              {{ treeControl.isExpanded(data) ? 'expand_more' : 'chevron_right' }}
+            </mat-icon>
+          </button>
+
+          {{ data.name }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="Start Date">
+        <th *matHeaderCellDef mat-header-cell>Start Date</th>
+        <td *matCellDef="let data"
+            mat-cell> {{ data.pmaExportRow.startDate }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="End Date">
+        <th *matHeaderCellDef mat-header-cell>End Date</th>
+        <td *matCellDef="let data"
+            mat-cell> {{ data.pmaExportRow.endDate }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="BMV">
+        <th *matHeaderCellDef mat-header-cell>BMV</th>
+        <td *matCellDef="let data"
+            mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBeginMV | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="EMV">
+        <th *matHeaderCellDef mat-header-cell> EMV</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeEndMV | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="BOD Inflow">
+        <th *matHeaderCellDef mat-header-cell> BOD Inflow</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBODInflow | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="BOD Outflow">
+        <th *matHeaderCellDef mat-header-cell> BOD Outflow</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBODOutflow | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Weight">
+        <th *matHeaderCellDef mat-header-cell> Weight</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBeginWeight | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Return">
+        <th *matHeaderCellDef mat-header-cell>Return</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.BaseTotalRor | number:'.3-5' }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="Bench BMV">
+        <th *matHeaderCellDef mat-header-cell>Bench BMV</th>
+        <td *matCellDef="let data"
+            mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBeginMV | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Bench EMV">
+        <th *matHeaderCellDef mat-header-cell> Bench EMV</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeEndMV | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Bench BOD Inflow">
+        <th *matHeaderCellDef mat-header-cell> Bench BOD Inflow</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBODInflow | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Bench BOD Outflow">
+        <th *matHeaderCellDef mat-header-cell> Bench BOD Outflow</th>
+        <td *matCellDef="let data"
+            mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBODOutflow | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Bench Weight">
+        <th *matHeaderCellDef mat-header-cell> Bench Weight</th>
+        <td *matCellDef="let data"
+            mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBeginWeight | number:'.3-3' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="Bench Return">
+        <th *matHeaderCellDef mat-header-cell>Bench Return</th>
+        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.benchmarkValues?.BaseTotalRor | number:'.3-5' }}
+        </td>
+      </ng-container>
+
+      <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+      <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+    </table>
+  </div>
+</form>

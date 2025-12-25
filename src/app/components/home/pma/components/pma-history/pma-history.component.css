@@ -1,0 +1,11 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+.mat-row, .mat-header-row {
+  height: 30px !important; /* Adjust as needed */
+  min-height: 30px !important; /* Adjust as needed */
+}
