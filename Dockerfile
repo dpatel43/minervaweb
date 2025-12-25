@@ -1,7 +1,7 @@
 # ------------------------
 # Build Angular App
 # ------------------------
-FROM node:20.11.0 AS build
+FROM node:22.12 AS build
 WORKDIR /app
 
 COPY package*.json ./
