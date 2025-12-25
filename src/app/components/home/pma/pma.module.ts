@@ -24,6 +24,7 @@ import {environment} from "../../../../environments/environment";
 import {ProcessorComponent} from './components/processor/processor.component';
 import {PMAExportComponent} from './components/pmaexport/pmaexport.component';
 import {PmaHistoryComponent} from './components/pma-history//pma-history.component';
+import {AgGridAngular} from "@ag-grid-community/angular";
 
 @NgModule({
   declarations: [PmaComponent, FieldComponent, FieldListComponent, FieldDetailComponent, TimeFieldComponent, TransactionFieldComponent, ProcessorComponent, PMAExportComponent, PmaHistoryComponent],
@@ -33,7 +34,8 @@ import {PmaHistoryComponent} from './components/pma-history//pma-history.compone
     HomeModule,
     StoreModule.forFeature('field', field),
     EffectsModule.forFeature([FieldEffects]),
-    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})
+    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production}),
+    AgGridAngular
   ],
   exports: [StoreModule]
 })

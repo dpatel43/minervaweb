@@ -4,9 +4,8 @@
   ~  * Proprietary and confidential.
   ~  */
   -->
-
-<form #form="ngForm" (ngSubmit)="save()">
-  <div class="card small">
+<div class="card h-100">
+  <form #form="ngForm" (ngSubmit)="save()">
     <div class="card-header bg-light">
       <input class="me-2" id="firstName" name="firstName" placeholder="Search"/>
       <button (click)="retrieve()" class="btn btn-primary btn-sm me-2 rounded-0" type="button">Retrieve</button>
@@ -21,11 +20,12 @@
               type="button">Save
       </button>
     </div>
-    <div class="card-body rounded-0">
+  </form>
+
+  <div class="card-body rounded-0 d-flex flex-column">
       <app-field-detail *ngIf="detail"></app-field-detail>
       <app-field-list *ngIf="!detail"></app-field-list>
-    </div>
   </div>
-</form>
+</div>
 
 

@@ -5,19 +5,115 @@
  *
  */
 
+/* Import core layout functionality */
+@import '@ag-grid-community/styles/ag-grid.css';
+@import '@ag-grid-community/styles/ag-theme-balham.css';
+
 /* You can add global styles to this file, and also import other style files */
 * {
   font-size: 12px;
 }
 
-html, body {
+/* =========================
+   Global Reset & Box Model
+   ========================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* =========================
+   Root Height Fix
+   ========================= */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+/* Angular root */
+app-root {
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 
-.container {
-  display: flex;
+/* =========================
+   Angular Material Fixes
+   ========================= */
+
+/* Prevent toolbar height issues */
+.mat-toolbar {
+  flex: 0 0 auto;
 }
 
+/* Allow content to grow correctly */
+.mat-sidenav-container,
+.mat-sidenav-content,
+.mat-drawer-container {
+  height: 100%;
+}
 
+/* Remove unexpected scrollbars */
+.mat-sidenav-content {
+  overflow: hidden;
+}
 
+/* =========================
+   Main Content Layout
+   ========================= */
 
+.main-content {
+  flex: 1 1 auto;
+  min-height: 0; /* CRITICAL for ag-grid */
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   ag-Grid Balham Theme Fixes
+   ========================= */
+
+.ag-theme-balham {
+  flex: 1 1 auto;
+  min-height: 0; /* CRITICAL */
+  width: 100%;
+}
+
+/* Prevent row text clipping */
+.ag-cell {
+  line-height: normal;
+}
+
+/* Optional: better header alignment */
+.ag-header-cell-label {
+  justify-content: center;
+}
+
+/* =========================
+   Scroll Behavior
+   ========================= */
+
+body {
+  overflow: hidden;
+}
+
+/* Let only specific areas scroll */
+.scrollable {
+  overflow: auto;
+}
+
+.ag-theme-balham {
+  --ag-font-family: Roboto, "Helvetica Neue", sans-serif;
+  --ag-font-size: 13px;
+}
+
+.ag-theme-balham .ag-cell {
+  border-right: 1px solid #dcdcdc;
+}
+
+.ag-theme-balham .ag-header-cell {
+  border-right: 1px solid #dcdcdc;
+}

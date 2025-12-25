@@ -5,15 +5,13 @@
  *
  */
 
-import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, OnInit} from '@angular/core';
 import {select, Store} from "@ngrx/store";
-import {MatTableDataSource} from "@angular/material/table";
 import {SearchField} from "../../data/search-field";
-import {MatSort} from "@angular/material/sort";
-import {MatPaginator} from "@angular/material/paginator";
 import {FieldState} from "../../store/states/field.state";
 import {selectFields} from "../../store/selectors/field.selectors";
 import {EditFieldAction} from "../../store/actions/field.actions";
+import {ColDef} from "@ag-grid-community/core";
 
 @Component({
   selector: 'app-field-list',
@@ -22,52 +20,45 @@ import {EditFieldAction} from "../../store/actions/field.actions";
   standalone: false
 })
 export class FieldListComponent implements OnInit, AfterViewInit {
-  @ViewChild(MatSort, {static: false}) sort: MatSort;
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
+  // @ViewChild(MatSort, {static: false}) sort: MatSort;
+  // @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
+  rowData: SearchField[] = [];
 
-  private _tableColumns = [
-    {
-      columnLabel: 'Field ID',
-      valueProperty: 'fieldId',
-      width: ''
-    },
-    {
-      columnLabel: 'Name',
-      valueProperty: 'name'
-    },
-    {
-      columnLabel: 'Type',
-      valueProperty: 'fieldType'
-    },
-  ];
+  // rowData = [
+  //   {make: 'Tesla', model: 'Model Y', price: 64950, electric: true},
+  //   {make: 'Ford', model: 'F-Series', price: 33850, electric: false},
+  //   {make: 'Toyota', model: 'Corolla', price: 29600, electric: false},
+  //   {make: 'Mercedes', model: 'EQA', price: 48890, electric: true},
+  //   {make: 'Fiat', model: '500', price: 15774, electric: false},
+  //   {make: 'Nissan', model: 'Leaf', price: 28100, electric: true},
+  // ];
 
-  public dataSource: MatTableDataSource<SearchField>;
+  // Define your column definitions
+  colDefs: ColDef[] = [
+    {field: 'fieldId', headerName: 'Id'},
+    {field: 'name', headerName: 'Name'},
+    {field: 'fieldType', headerName: 'Type'},
+  ]
+
+  defaultColDef = {
+    flex: 1,
+    sortable: true,
+    filter: true,
+    resizable: true
+  };
 
   constructor(public store: Store<FieldState>) {
   }
 
   ngAfterViewInit(): void {
-
-    this.paginator.page.subscribe()
   }
 
   ngOnInit(): void {
     this.store.pipe(select(selectFields)).subscribe(fields => this.initializeData(fields));
   }
 
-
-  get tableColumns() {
-    return this._tableColumns;
-  }
-
-  get displayedColumns() {
-    const displayColumns = [];
-    this.tableColumns.forEach(element => displayColumns.push(element.valueProperty));
-    return displayColumns;
-  }
-
   private initializeData(page: SearchField[]): void {
-    this.dataSource = new MatTableDataSource(page);
+    this.rowData = page;
   }
 
   onEdit(row: SearchField) {

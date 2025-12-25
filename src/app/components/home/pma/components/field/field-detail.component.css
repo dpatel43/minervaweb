@@ -1,0 +1,32 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.field-extensions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+mat-card {
+  border-radius: 8px;
+}
+
+mat-card-content {
+  padding: 12px;
+}
