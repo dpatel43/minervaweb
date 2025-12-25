@@ -23,6 +23,12 @@ import {RouterModule} from "@angular/router";
 import {StoreModule} from '@ngrx/store';
 import {EffectsModule} from "@ngrx/effects";
 import {APP_BASE_HREF} from "@angular/common";
+// Also register the required feature modules
+import {ModuleRegistry} from '@ag-grid-community/core';
+import {ClientSideRowModelModule} from '@ag-grid-community/client-side-row-model';
+
+// Register the modules you are using
+ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 @NgModule({
   declarations: [

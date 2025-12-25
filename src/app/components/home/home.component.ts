@@ -11,14 +11,33 @@ import {AuthenticationService} from "../../services/authentication.service";
 import {UserService} from "./admin/services/user.service";
 import {ModuleGroupVO} from "./admin/data/moduleGroupVO";
 import {ModuleVO} from "./admin/data/moduleVO";
+import {ColDef} from "@ag-grid-community/core";
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss'],
+  styleUrls: ['./home.component.css'],
   standalone: false
 })
 export class HomeComponent implements OnInit {
+
+
+  rowData = [
+    {make: 'Tesla', model: 'Model Y', price: 64950, electric: true},
+    {make: 'Ford', model: 'F-Series', price: 33850, electric: false},
+    {make: 'Toyota', model: 'Corolla', price: 29600, electric: false},
+    {make: 'Mercedes', model: 'EQA', price: 48890, electric: true},
+    {make: 'Fiat', model: '500', price: 15774, electric: false},
+    {make: 'Nissan', model: 'Leaf', price: 28100, electric: true},
+  ];
+
+  // Define your column definitions
+  colDefs: ColDef[] = [
+    {field: 'make'},
+    {field: 'model'},
+    {field: 'price'},
+    {field: 'electric'}
+  ]
 
   loggedIn: boolean;
   moduleGroups: ModuleGroupVO[];
@@ -36,7 +55,7 @@ export class HomeComponent implements OnInit {
     this.userService.getPermittedModuleGroups().subscribe(
       (data: ModuleGroupVO[]) => {
         this.moduleGroups = data;
-        console.log(this.moduleGroups);
+        //console.log(this.moduleGroups);
         for (const moduleGroupVO of this.moduleGroups) {
           for (const module of moduleGroupVO.modules) {
             this.modules.push(module);
