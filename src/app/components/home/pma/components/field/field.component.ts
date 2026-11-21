@@ -8,8 +8,9 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {select, Store} from "@ngrx/store";
 import {FieldState} from "../../store/states/field.state";
-import {NewFieldAction, RetrieveFieldsAction} from "../../store/actions/field.actions";
-import {selectDetailFlag} from "../../store/selectors/field.selectors";
+import {EditFieldAction, NewFieldAction, RetrieveFieldsAction} from "../../store/actions/field.actions";
+import {selectDetailFlag, selectField} from "../../store/selectors/field.selectors";
+import {Field} from "../../data/field";
 import {FieldDetailComponent} from "./field-detail.component";
 
 @Component({
@@ -24,11 +25,16 @@ export class FieldComponent implements OnInit {
 
   private _detail: boolean;
 
+  /** Field currently in the store; used for the breadcrumb and Reload */
+  field: Field;
+  searchText = '';
+
   constructor(public store: Store<FieldState>) {
   }
 
   ngOnInit(): void {
     this.store.pipe(select(selectDetailFlag)).subscribe(detail => this._detail = detail);
+    this.store.pipe(select(selectField)).subscribe(field => this.field = field);
     this.store.dispatch(new RetrieveFieldsAction(''));
   }
 
@@ -37,7 +43,7 @@ export class FieldComponent implements OnInit {
   }
 
   retrieve() {
-    this.store.dispatch(new RetrieveFieldsAction(''));
+    this.store.dispatch(new RetrieveFieldsAction(this.searchText.trim()));
   }
 
   createNew() {
@@ -49,7 +55,9 @@ export class FieldComponent implements OnInit {
   }
 
   reload() {
-
+    if (this.field?.fieldId) {
+      this.store.dispatch(new EditFieldAction(this.field.fieldId));
+    }
   }
 
   save() {

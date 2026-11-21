@@ -8,6 +8,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {ProfileComponent} from './profile.component';
+import {provideStore} from '@ngrx/store';
 
 describe('ProfileComponent', () => {
   let component: ProfileComponent;
@@ -15,7 +16,9 @@ describe('ProfileComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProfileComponent]
+      imports: [ProfileComponent],
+      // Profile has no reducer yet; an empty store is enough to create it
+      providers: [provideStore()]
     })
       .compileComponents();
 

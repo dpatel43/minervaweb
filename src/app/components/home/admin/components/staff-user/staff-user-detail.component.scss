@@ -1,0 +1,10 @@
+:host {
+  display: block;
+}
+
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 960px;
+}

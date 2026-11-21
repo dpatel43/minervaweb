@@ -19,7 +19,8 @@ import {AppRoutingModule} from "./app-routing.module";
 import {MAT_FORM_FIELD_DEFAULT_OPTIONS} from "@angular/material/form-field";
 import {StoreDevtoolsModule} from '@ngrx/store-devtools';
 import {environment} from "../environments/environment";
-import {RouterModule} from "@angular/router";
+import {RouteReuseStrategy, RouterModule} from "@angular/router";
+import {TabRouteReuseStrategy} from "./services/tabs/tab-route-reuse.strategy";
 import {StoreModule} from '@ngrx/store';
 import {EffectsModule} from "@ngrx/effects";
 import {APP_BASE_HREF} from "@angular/common";
@@ -49,6 +50,8 @@ ModuleRegistry.registerModules([ClientSideRowModelModule]);
     StoreModule.forRoot(),
     EffectsModule.forRoot()], providers: [
     {provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true},
+    // Keeps each open tab's screen alive while other tabs are shown
+    {provide: RouteReuseStrategy, useClass: TabRouteReuseStrategy},
     {provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: {apperance: 'fill'}},
     {provide: APP_BASE_HREF, useValue: '/minervaweb'},
     AuthGuard,

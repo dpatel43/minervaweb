@@ -4,7 +4,8 @@ import {HomeComponent} from "./home.component";
 
 let routes: Routes = [
   {
-    path: '', component: HomeComponent,
+    // tabHost: screens rendered in this component's outlet are kept alive per tab
+    path: '', component: HomeComponent, data: {tabHost: true},
     children: [
       {path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)},
       {

@@ -25,6 +25,9 @@ export class MinervaTableComponent<T> implements OnInit, AfterViewInit {
   @ViewChild(MatSort, {static: true}) sort: MatSort;
 
   _tableColumns: TableColumnInfo[];
+
+  /** Column sorted on first load (descending) */
+  @Input() sortActive = '';
   _loadFunction: Function;
   _dataSource: MinervaDataSource<Page<T>>;
 
@@ -34,7 +37,16 @@ export class MinervaTableComponent<T> implements OnInit, AfterViewInit {
 
   }
 
+  readonly pageSize = 20;
+
   ngOnInit(): void {
+    // The data source loads the first page immediately, before template inputs
+    // reach the paginator and sort, so set their initial state here.
+    this.paginator.pageSize = this.pageSize;
+    if (this.sortActive) {
+      this.sort.active = this.sortActive;
+      this.sort.direction = 'desc';
+    }
     this._dataSource = new MinervaDataSource<Page<T>>(this.paginator, this.sort, this.loadFunction);
   }
 

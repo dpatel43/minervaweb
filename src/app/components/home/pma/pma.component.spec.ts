@@ -8,6 +8,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {PmaComponent} from './pma.component';
+import {RouterModule} from '@angular/router';
 
 describe('PmaComponent', () => {
   let component: PmaComponent;
@@ -15,7 +16,9 @@ describe('PmaComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PmaComponent]
+      declarations: [PmaComponent],
+      // the template's <router-outlet>
+      imports: [RouterModule.forRoot([])]
     })
       .compileComponents();
   });

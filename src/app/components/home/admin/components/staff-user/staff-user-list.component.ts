@@ -24,8 +24,9 @@ export class StaffUserListComponent extends AbstractEntityListComponent<SearchSt
 
   private _tableColumns = [
     {
-      columnLabel: 'Staff User Id',
-      valueProperty: 'staffUserId'
+      columnLabel: 'ID',
+      valueProperty: 'staffUserId',
+      numeric: true
     },
     {
       columnLabel: 'First Name',
@@ -41,8 +42,7 @@ export class StaffUserListComponent extends AbstractEntityListComponent<SearchSt
     },
     {
       columnLabel: 'Username',
-      valueProperty: 'user' +
-        'Name'
+      valueProperty: 'userName'
     }
   ];
   _selectedId = 0;

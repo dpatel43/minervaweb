@@ -11,7 +11,7 @@ import {SearchField} from "../../data/search-field";
 import {FieldState} from "../../store/states/field.state";
 import {selectFields} from "../../store/selectors/field.selectors";
 import {EditFieldAction} from "../../store/actions/field.actions";
-import {ColDef} from "@ag-grid-community/core";
+import {ColDef, RowSelectionOptions} from "@ag-grid-community/core";
 
 @Component({
   selector: 'app-field-list',
@@ -35,10 +35,21 @@ export class FieldListComponent implements OnInit, AfterViewInit {
 
   // Define your column definitions
   colDefs: ColDef[] = [
-    {field: 'fieldId', headerName: 'Id'},
-    {field: 'name', headerName: 'Name'},
-    {field: 'fieldType', headerName: 'Type'},
+    {field: 'fieldId', headerName: 'ID', type: 'numericColumn', flex: 0, width: 90},
+    {field: 'name', headerName: 'Name', flex: 2},
+    {field: 'fieldType', headerName: 'Type', flex: 1},
   ]
+
+  /**
+   * One row at a time, selected by clicking it (no checkbox column), as with
+   * the deprecated rowSelection="single". The new API defaults to checkboxes
+   * on and click selection off, so both are set explicitly.
+   */
+  rowSelection: RowSelectionOptions = {
+    mode: 'singleRow',
+    checkboxes: false,
+    enableClickSelection: true
+  };
 
   defaultColDef = {
     flex: 1,

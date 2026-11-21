@@ -5,13 +5,14 @@
  *
  */
 
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
 import {AbstractEntityComponent} from "../../../../common/abstract-entity-component";
 import {StaffUser} from "../../data/staff-user";
 import {Observable} from "rxjs";
 import {Page} from "../../../../../models/page";
 import {tap} from "rxjs/operators";
 import {StaffUserService} from "../../services/staff-user.service";
+import {StaffUserDetailComponent} from "./staff-user-detail.component";
 
 @Component({
   selector: 'app-staff-user',
@@ -23,6 +24,29 @@ export class StaffUserComponent extends AbstractEntityComponent<StaffUser> imple
 
 
   private _staffUser: StaffUser;
+
+  @ViewChild(StaffUserDetailComponent) private detailComponent: StaffUserDetailComponent;
+
+  /** True when the detail form has unsaved changes */
+  canSave = false;
+
+  get title(): string {
+    const u = this.staffUser;
+    if (!u?.staffUserId) {
+      return 'New staff user';
+    }
+    const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+    return name || `Staff user ${u.staffUserId}`;
+  }
+
+  saveDetail() {
+    this.detailComponent?.save();
+  }
+
+  onDetailSaved(staffUser: StaffUser) {
+    this.staffUser = staffUser;
+    this.canSave = false;
+  }
 
   constructor(private staffUserService: StaffUserService) { super(); }
 
@@ -38,6 +62,7 @@ export class StaffUserComponent extends AbstractEntityComponent<StaffUser> imple
   }
 
   protected onCreateNew(): Observable<StaffUser> {
+    this.canSave = false;
     this.staffUser = new StaffUser();
     return undefined;
   }
@@ -48,6 +73,7 @@ export class StaffUserComponent extends AbstractEntityComponent<StaffUser> imple
   }
 
   protected onReload(): Observable<StaffUser> {
+    this.canSave = false;
     return this.loadStaffUser(this.staffUser.staffUserId);
   }
 
@@ -62,6 +88,7 @@ export class StaffUserComponent extends AbstractEntityComponent<StaffUser> imple
   }
 
   protected onEdit(editId: number): Observable<StaffUser> {
+    this.canSave = false;
     if (editId != 0) {
       return this.loadStaffUser(editId);
     } else {

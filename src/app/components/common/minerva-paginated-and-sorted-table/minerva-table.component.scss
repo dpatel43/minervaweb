@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.minerva-table-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.minerva-table-scroll .mat-mdc-table {
+  width: 100%;
+  border: 0;
+}
+
+.mat-mdc-paginator {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--app-border);
+}

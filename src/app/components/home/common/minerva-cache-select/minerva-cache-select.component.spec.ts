@@ -1,6 +1,8 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {MinervaCacheSelectComponent} from './minerva-cache-select.component';
+import {FormsModule} from '@angular/forms';
+import {apiTestingProviders} from '../../../../testing/test-providers';
 
 describe('MinervaCacheSelectComponent', () => {
   let component: MinervaCacheSelectComponent;
@@ -8,7 +10,9 @@ describe('MinervaCacheSelectComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [MinervaCacheSelectComponent]
+      declarations: [MinervaCacheSelectComponent],
+      imports: [FormsModule],
+      providers: apiTestingProviders
     })
       .compileComponents();
   });

@@ -1,8 +1,25 @@
-.form-container {
+:host {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
-.form-container > * {
-  width: 100%;
+.processor-card,
+.processor-result {
+  max-width: 720px;
+}
+
+.processor-result {
+  margin: 0;
+  padding: 8px 12px;
+}
+
+.processor-result .bi {
+  font-size: 14px;
+  line-height: 16px;
+}
+
+.processor-result .btn-close {
+  font-size: 9px;
 }

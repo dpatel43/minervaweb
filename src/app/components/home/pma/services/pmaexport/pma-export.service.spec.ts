@@ -8,12 +8,13 @@
 import {TestBed} from '@angular/core/testing';
 
 import {PmaExportService} from './pma-export.service';
+import {apiTestingProviders} from '../../../../../testing/test-providers';
 
 describe('PmaExportService', () => {
   let service: PmaExportService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({providers: apiTestingProviders});
     service = TestBed.inject(PmaExportService);
   });
 

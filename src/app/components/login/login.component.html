@@ -1,20 +1,26 @@
-<mat-toolbar>
-  <span>LOGIN</span>
-</mat-toolbar>
-<mat-card class="my-card">
-  <mat-card-content>
-    <form class="my-form" [formGroup]="loginForm">
-      <mat-form-field class="full-width">
-        <mat-label>Username</mat-label>
-        <input  matInput type="text" placeholder="Username" formControlName="username">
-      </mat-form-field>
-      <mat-form-field class="full-width">
-        <mat-label>Password</mat-label>
-        <input  matInput type="password" placeholder="Password" formControlName="password">
-      </mat-form-field>
-    </form>
-  </mat-card-content>
-  <mat-card-actions>
-    <button mat-raised-button (click)="onSubmit()" color="primary">LOGIN</button>
-  </mat-card-actions>
-</mat-card>
+<div class="login-page">
+  <div class="card login-card">
+    <div class="card-body">
+      <h1 class="login-title">Minerva Systems</h1>
+      <p class="text-body-secondary mb-3">Sign in to continue</p>
+      <form (ngSubmit)="onSubmit()" [formGroup]="loginForm" novalidate>
+        <div class="mb-2">
+          <label class="form-label" for="username">Username</label>
+          <input [class.is-invalid]="submitted && f.username.errors" autocomplete="username" class="form-control"
+                 formControlName="username" id="username" type="text">
+          <div class="invalid-feedback">Username is required</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="password">Password</label>
+          <input [class.is-invalid]="submitted && f.password.errors" autocomplete="current-password"
+                 class="form-control" formControlName="password" id="password" type="password">
+          <div class="invalid-feedback">Password is required</div>
+        </div>
+        <button [disabled]="loading" class="btn btn-primary w-100" type="submit">
+          <span *ngIf="loading" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
+          Sign in
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

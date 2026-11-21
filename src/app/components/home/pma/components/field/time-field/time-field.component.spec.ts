@@ -8,6 +8,11 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {TimeFieldComponent} from './time-field.component';
+import {FormsModule} from '@angular/forms';
+import {provideRouter} from '@angular/router';
+import {HomeModule} from '../../../../home.module';
+import {Field} from '../../../data/field';
+import {apiTestingProviders} from '../../../../../../testing/test-providers';
 
 describe('TimeFieldComponent', () => {
   let component: TimeFieldComponent;
@@ -15,7 +20,9 @@ describe('TimeFieldComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TimeFieldComponent]
+      declarations: [TimeFieldComponent],
+      imports: [FormsModule, HomeModule],
+      providers: [...apiTestingProviders, provideRouter([])]
     })
       .compileComponents();
   });
@@ -23,6 +30,8 @@ describe('TimeFieldComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(TimeFieldComponent);
     component = fixture.componentInstance;
+    // Required input, normally passed in by FieldDetailComponent
+    component.field = new Field();
     fixture.detectChanges();
   });
 

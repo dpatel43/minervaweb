@@ -6,12 +6,13 @@
  */
 
 import {Component, OnInit} from '@angular/core';
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {AuthenticationService} from "../../services/authentication.service";
 import {UserService} from "./admin/services/user.service";
 import {ModuleGroupVO} from "./admin/data/moduleGroupVO";
 import {ModuleVO} from "./admin/data/moduleVO";
 import {ColDef} from "@ag-grid-community/core";
+import {AppTab, TabService} from "../../services/tabs/tab.service";
 
 @Component({
   selector: 'app-home',
@@ -45,8 +46,10 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private authenticationService: AuthenticationService,
-    private userService: UserService
+    private userService: UserService,
+    public tabService: TabService
   ) {
     this.authenticationService.isLoggedIn.subscribe(x => this.loggedIn = x);
   }
@@ -61,11 +64,35 @@ export class HomeComponent implements OnInit {
             this.modules.push(module);
           }
         }
+        this.tabService.setKnownTitles(new Map(this.modules.map(m => [this.moduleUrl(m), m.name])));
       }
     );
   }
 
+  openModule(module: ModuleVO) {
+    this.tabService.open(this.moduleUrl(module), module.name);
+  }
+
+  /**
+   * Absolute URL for a menu item. homeURL may be relative (e.g. "pma/field"),
+   * as the menu used to be a routerLink inside this component; resolve it
+   * the same way routerLink did, relative to this route (/home).
+   */
+  moduleUrl(module: ModuleVO): string {
+    return this.router.serializeUrl(this.router.createUrlTree([module.homeURL], {relativeTo: this.route}));
+  }
+
+  closeTab(tab: AppTab, event: Event) {
+    event.stopPropagation();
+    this.tabService.close(tab);
+  }
+
+  trackTab(_: number, tab: AppTab) {
+    return tab.url;
+  }
+
   logout() {
+    this.tabService.reset();
     this.authenticationService.logout();
     this.router.navigate(['/login']);
   }

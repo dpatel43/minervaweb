@@ -5,155 +5,191 @@
   ~  */
   -->
 
-<form [formGroup]="exportForm" class="form-horizontal">
-  <div class="row">
-    <div class="col">
-      <label for="account">Account</label>
-      <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" id="account"
-                                 name="account" required>
-      </app-minerva-auto-complete>
-    </div>
-    <div class="col">
-      <label for="profile">Profile</label>
-      <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" id="profile"
-                                 name="profile" required>
-      </app-minerva-auto-complete>
-    </div>
-    <div class="col">
-      <mat-form-field>
-        <mat-label>Start Date</mat-label>
-        <input [matDatepicker]="start" formControlName="start" matInput>
-        <mat-datepicker-toggle [for]="start" matIconSuffix></mat-datepicker-toggle>
-        <mat-datepicker #start></mat-datepicker>
-      </mat-form-field>
-    </div>
-    <div class="col">
-      <mat-form-field>
-        <mat-label>End Date</mat-label>
-        <input [matDatepicker]="end" formControlName="end" matInput>
-        <mat-datepicker-toggle [for]="end" matIconSuffix></mat-datepicker-toggle>
-        <mat-datepicker #end></mat-datepicker>
-      </mat-form-field>
-    </div>
-    <div class="col">
-      <label for="fieldType">Type</label>
-      <app-minerva-cache-select [cacheGroup]="'PERIOD'" formControlName="period"></app-minerva-cache-select>
-    </div>
-    <div class="col">
-      <mat-checkbox formControlName="filterSecurities">Filter Securities</mat-checkbox>
-    </div>
-    <div class="col">
-      <button (click)="onSubmit()" class="btn btn-primary btn-sm me-2 rounded-0" type="button">Retrieve</button>
-    </div>
-  </div>
-  <div class="card-body">
-    <table [dataSource]="dataSource" class="mat-elevation-z8" mat-table>
-      <ng-container matColumnDef="name">
-        <th *matHeaderCellDef mat-header-cell>
-          <span [style.paddingLeft.px]="20"> Name </span>
-        </th>
-        <td *matCellDef="let data" mat-cell>
-          <button (click)="treeControl.toggle(data)"
-                  [style.marginLeft.px]="data.level * 16"
-                  [style.visibility]="!data.expandable ? 'hidden' : ''"
-                  mat-icon-button>
-            <mat-icon class="mat-icon-rtl-mirror">
-              {{ treeControl.isExpanded(data) ? 'expand_more' : 'chevron_right' }}
-            </mat-icon>
+<div class="report-page">
+  <form (ngSubmit)="onSubmit()" [formGroup]="exportForm" class="card filter-bar">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-auto filter-field">
+          <label class="form-label" for="account">Account</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" inputId="account"
+                                     placeholder="Search account" required>
+          </app-minerva-auto-complete>
+        </div>
+        <div class="col-auto filter-field">
+          <label class="form-label" for="profile">Profile</label>
+          <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" inputId="profile"
+                                     placeholder="Search profile" required>
+          </app-minerva-auto-complete>
+        </div>
+        <div class="col-auto filter-field-sm">
+          <label class="form-label" for="start">Start date</label>
+          <div class="input-group flex-nowrap date-input">
+            <input [matDatepicker]="start" class="form-control" formControlName="start" id="start"
+                   placeholder="MM/DD/YYYY">
+            <mat-datepicker-toggle [for]="start"></mat-datepicker-toggle>
+            <mat-datepicker #start></mat-datepicker>
+          </div>
+        </div>
+        <div class="col-auto filter-field-sm">
+          <label class="form-label" for="end">End date</label>
+          <div class="input-group flex-nowrap date-input">
+            <input [matDatepicker]="end" class="form-control" formControlName="end" id="end"
+                   placeholder="MM/DD/YYYY">
+            <mat-datepicker-toggle [for]="end"></mat-datepicker-toggle>
+            <mat-datepicker #end></mat-datepicker>
+          </div>
+        </div>
+        <div class="col-auto filter-field-sm">
+          <label class="form-label" for="period">Period</label>
+          <app-minerva-cache-select [cacheGroup]="'PERIOD'" formControlName="period"
+                                    inputId="period"></app-minerva-cache-select>
+        </div>
+        <div class="col-auto">
+          <div class="form-check mb-1">
+            <input class="form-check-input" formControlName="filterSecurities" id="filterSecurities"
+                   type="checkbox">
+            <label class="form-check-label" for="filterSecurities">Filter securities</label>
+          </div>
+        </div>
+        <div class="col-auto">
+          <button [disabled]="!canRetrieve || loading" class="btn btn-primary" type="submit">
+            <span *ngIf="loading" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
+            Retrieve
           </button>
+        </div>
+        <div *ngIf="dataSource" class="col-auto ms-auto results-controls">
+          <span class="text-body-secondary">
+            <ng-container *ngIf="hasFilters; else allRows">{{ visibleRows }} of {{ totalRows }} rows</ng-container>
+            <ng-template #allRows>{{ totalRows }} rows</ng-template>
+          </span>
+          <button (click)="clearFilters()" *ngIf="hasFilters" class="btn btn-sm btn-link clear-filters" type="button">
+            Clear filters
+          </button>
+          <button (click)="toggleFilters()" *ngIf="columnFiltersEnabled" [attr.aria-pressed]="filtersVisible"
+                  [class.active]="filtersVisible"
+                  [title]="filtersVisible ? 'Hide column filters (clears them)' : 'Show a filter box under each column title. Numbers: >0, <=-0.01, <>0, 0.01..0.05, or text to match.'"
+                  class="btn btn-outline-secondary filter-toggle" type="button">
+            <i class="bi bi-funnel me-1"></i>Filters
+            <span *ngIf="hasFilters" class="badge filter-count">{{ activeFilterCount }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
 
-          {{ data.name }}
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="Start Date">
-        <th *matHeaderCellDef mat-header-cell>Start Date</th>
-        <td *matCellDef="let data"
-            mat-cell> {{ data.pmaExportRow.startDate }}
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="End Date">
-        <th *matHeaderCellDef mat-header-cell>End Date</th>
-        <td *matCellDef="let data"
-            mat-cell> {{ data.pmaExportRow.endDate }}
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="BMV">
-        <th *matHeaderCellDef mat-header-cell>BMV</th>
-        <td *matCellDef="let data"
-            mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBeginMV | number:'.3-3' }}
-        </td>
-      </ng-container>
+  <div class="card results-card with-charts">
+    <div class="card-body">
+      <div *ngIf="!dataSource" class="results-empty">
+        Choose an account, profile and date range, then select Retrieve.
+      </div>
 
-      <ng-container matColumnDef="EMV">
-        <th *matHeaderCellDef mat-header-cell> EMV</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeEndMV | number:'.3-3' }}
-        </td>
-      </ng-container>
+      <div *ngIf="dataSource" class="report-split">
+        <div class="report-split-table">
+          <table [dataSource]="dataSource" [style.width.px]="totalWidth"
+                 (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
+            <colgroup>
+              <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">
+            </colgroup>
+            <!-- Group header row -->
+            <ng-container matColumnDef="group-info">
+              <th *matHeaderCellDef [attr.colspan]="3" mat-header-cell></th>
+            </ng-container>
+            <ng-container matColumnDef="group-account">
+              <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Portfolio</th>
+            </ng-container>
+            <ng-container matColumnDef="group-benchmark">
+              <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Benchmark</th>
+            </ng-container>
 
-      <ng-container matColumnDef="BOD Inflow">
-        <th *matHeaderCellDef mat-header-cell> BOD Inflow</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBODInflow | number:'.3-3' }}
-        </td>
-      </ng-container>
+            <!-- Row info -->
+            <ng-container matColumnDef="name">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="name" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>Name</th>
+              <td *matCellDef="let data" mat-cell>
+                <div [style.paddingLeft.px]="data.level * 16" class="tree-cell">
+                  <button (click)="toggle(data); $event.stopPropagation()" [attr.aria-label]="'Toggle ' + data.name"
+                          [class.invisible]="!data.expandable" class="tree-toggle" type="button">
+                    <i [class.bi-chevron-down]="treeControl.isExpanded(data)"
+                       [class.bi-chevron-right]="!treeControl.isExpanded(data)" class="bi"></i>
+                  </button>
+                  <span [title]="data.name" class="text-truncate">{{ data.name }}</span>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="startDate">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="startDate" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>Start Date</th>
+              <td *matCellDef="let data" class="text-nowrap" mat-cell>{{ data.pmaExportRow.startDate }}</td>
+            </ng-container>
+            <ng-container matColumnDef="endDate">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="endDate" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>End Date</th>
+              <td *matCellDef="let data" class="text-nowrap" mat-cell>{{ data.pmaExportRow.endDate }}</td>
+            </ng-container>
 
-      <ng-container matColumnDef="BOD Outflow">
-        <th *matHeaderCellDef mat-header-cell> BOD Outflow</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBODOutflow | number:'.3-3' }}
-        </td>
-      </ng-container>
+            <!-- Filter row: one box per column -->
+            <ng-container *ngFor="let c of textFilterColumns" [matColumnDef]="'filter-' + c.key">
+              <th *matHeaderCellDef class="filter-cell" mat-header-cell>
+                <input #f (input)="onFilterChange(c.key, f.value)" (keydown.escape)="f.value = ''; onFilterChange(c.key, '')"
+                       [attr.aria-label]="'Filter ' + c.label" [value]="columnFilters[c.key] ?? ''"
+                       class="form-control column-filter" placeholder="Filter">
+              </th>
+            </ng-container>
+            <ng-container *ngFor="let group of ['account', 'benchmark']">
+              <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'filter-' + group + '-' + m.key">
+                <th *matHeaderCellDef [class.group-start]="first" class="filter-cell" mat-header-cell>
+                  <input #f (input)="onFilterChange(group + '-' + m.key, f.value)"
+                         (keydown.escape)="f.value = ''; onFilterChange(group + '-' + m.key, '')"
+                         [attr.aria-label]="'Filter ' + group + ' ' + m.label" [value]="columnFilters[group + '-' + m.key] ?? ''"
+                         class="form-control column-filter num" placeholder="e.g. >0"
+                         title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
+                </th>
+              </ng-container>
+            </ng-container>
 
-      <ng-container matColumnDef="Weight">
-        <th *matHeaderCellDef mat-header-cell> Weight</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.CompositeBeginWeight | number:'.3-3' }}
-        </td>
-      </ng-container>
+            <!-- Portfolio metrics -->
+            <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'account-' + m.key">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'account-' + m.key"
+                  (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
+                  mat-sort-header>{{ m.label }}</th>
+              <td *matCellDef="let data" [class.group-start]="first"
+                  [class.negative]="m.signed && data.pmaExportRow.accountValues?.[m.field] < 0"
+                  class="num" mat-cell>
+                {{ data.pmaExportRow.accountValues?.[m.field] | number:m.format }}
+              </td>
+            </ng-container>
 
-      <ng-container matColumnDef="Return">
-        <th *matHeaderCellDef mat-header-cell>Return</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues?.BaseTotalRor | number:'.3-5' }}
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="Bench BMV">
-        <th *matHeaderCellDef mat-header-cell>Bench BMV</th>
-        <td *matCellDef="let data"
-            mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBeginMV | number:'.3-3' }}
-        </td>
-      </ng-container>
+            <!-- Benchmark metrics -->
+            <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'benchmark-' + m.key">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'benchmark-' + m.key"
+                  (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
+                  mat-sort-header>{{ m.label }}</th>
+              <td *matCellDef="let data" [class.group-start]="first"
+                  [class.negative]="m.signed && data.pmaExportRow.benchmarkValues?.[m.field] < 0"
+                  class="num" mat-cell>
+                {{ data.pmaExportRow.benchmarkValues?.[m.field] | number:m.format }}
+              </td>
+            </ng-container>
 
-      <ng-container matColumnDef="Bench EMV">
-        <th *matHeaderCellDef mat-header-cell> Bench EMV</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeEndMV | number:'.3-3' }}
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="Bench BOD Inflow">
-        <th *matHeaderCellDef mat-header-cell> Bench BOD Inflow</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBODInflow | number:'.3-3' }}
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="Bench BOD Outflow">
-        <th *matHeaderCellDef mat-header-cell> Bench BOD Outflow</th>
-        <td *matCellDef="let data"
-            mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBODOutflow | number:'.3-3' }}
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="Bench Weight">
-        <th *matHeaderCellDef mat-header-cell> Bench Weight</th>
-        <td *matCellDef="let data"
-            mat-cell> {{ data.pmaExportRow.benchmarkValues?.CompositeBeginWeight | number:'.3-3' }}
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="Bench Return">
-        <th *matHeaderCellDef mat-header-cell>Bench Return</th>
-        <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.benchmarkValues?.BaseTotalRor | number:'.3-5' }}
-        </td>
-      </ng-container>
-
-      <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
-      <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
-    </table>
+            <tr *matHeaderRowDef="groupColumns; sticky: true" class="group-header-row" mat-header-row></tr>
+            <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
+            <tr *matHeaderRowDef="filterColumns; sticky: true" [class.d-none]="!filtersVisible" class="filter-row"
+                mat-header-row></tr>
+            <tr *matNoDataRow class="mat-mdc-row">
+              <td [attr.colspan]="displayedColumns.length" class="mat-mdc-cell results-empty">
+                No rows match the column filters.
+              </td>
+            </tr>
+            <tr (click)="selectRow(row)" *matRowDef="let row; columns: displayedColumns;"
+                [attr.aria-selected]="row.key === selectedKey" [class.filter-context]="row.filterContext"
+                [class.row-selected]="row.key === selectedKey" class="chart-source-row"
+                [class.tree-parent]="row.expandable"
+                [class.tree-root]="row.level === 0" mat-row></tr>
+          </table>
+        </div>
+        <aside *ngIf="selectedRow" aria-label="Charts for the selected row" class="report-split-charts">
+          <app-pma-return-charts (periodChange)="onChartPeriodChange($event)" [parent]="selectedParent"
+                                 [period]="chartPeriod" [periods]="chartPeriods" [row]="selectedRow"
+                                 valueFormat=".3-5"></app-pma-return-charts>
+        </aside>
+      </div>
+    </div>
   </div>
-</form>
+</div>

@@ -22,8 +22,10 @@
   [rowData]="rowData"
   (rowClicked)="onEdit($event.data)"
   [defaultColDef]="defaultColDef"
-  pagination="true"
-  paginationPageSize="10"
-  rowSelection="single"
-  class="ag-theme-balham flex-fill w-100">
+  [pagination]="true"
+  [paginationPageSize]="20"
+  [paginationPageSizeSelector]="[20, 50, 100]"
+  [rowSelection]="rowSelection"
+  appFitGridHeight
+  class="ag-theme-balham w-100">
 </ag-grid-angular>

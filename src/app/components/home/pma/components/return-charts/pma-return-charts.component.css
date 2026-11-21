@@ -1,0 +1,157 @@
+:host {
+  /* Validated diverging pair (dataviz validator: all checks pass on white) */
+  --chart-positive: #2a78d6;
+  --chart-negative: var(--app-negative);
+  --chart-grid: #e7ebf0;
+  --chart-baseline: #b9c2ce;
+
+  position: relative;
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart + .chart {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-border);
+}
+
+.chart-header {
+  margin-bottom: 4px;
+}
+
+.chart-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+
+.chart-subtitle {
+  color: var(--app-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-svg {
+  display: block;
+  overflow: visible;
+}
+
+.chart-note,
+.chart-empty {
+  margin: 2px 0 0;
+  color: var(--app-muted);
+}
+
+.chart-empty {
+  padding: 12px 0;
+}
+
+/* Recessive grid: solid hairlines, muted tick text */
+.grid line {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.baseline {
+  stroke: var(--chart-baseline);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+text {
+  font-size: 11px;
+  fill: var(--app-muted);
+}
+
+.tick {
+  font-size: 10px;
+}
+
+.value {
+  fill: var(--bs-body-color);
+  font-weight: 500;
+}
+
+.period {
+  fill: var(--app-muted);
+}
+
+.segment-name {
+  fill: var(--bs-body-color);
+}
+
+/* Marks: the color carries the sign; text stays in ink colors */
+.bar {
+  fill: var(--chart-positive);
+}
+
+.bar.negative {
+  fill: var(--chart-negative);
+}
+
+.hit {
+  fill: transparent;
+}
+
+.column,
+.segment {
+  outline: none;
+}
+
+.column {
+  cursor: pointer;
+}
+
+.column:hover .hit,
+.column:focus-visible .hit,
+.segment:hover .hit,
+.segment:focus-visible .hit {
+  fill: rgba(var(--app-navy-rgb), .05);
+}
+
+.column:focus-visible .hit,
+.segment:focus-visible .hit {
+  stroke: rgba(var(--app-navy-rgb), .5);
+  stroke-width: 1.5;
+}
+
+.column.selected .period {
+  fill: var(--app-navy);
+  font-weight: 600;
+}
+
+.period-marker {
+  fill: var(--app-navy);
+}
+
+.segment.emphasised .segment-name {
+  font-weight: 600;
+}
+
+/* Tooltip: value leads, label follows */
+.chart-tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 10px));
+  padding: 4px 8px;
+  border: 1px solid var(--app-border);
+  border-radius: var(--bs-border-radius);
+  background: var(--app-surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.chart-tooltip strong {
+  display: block;
+  color: var(--bs-body-color);
+  font-weight: 600;
+}
+
+.chart-tooltip span {
+  color: var(--app-muted);
+}
