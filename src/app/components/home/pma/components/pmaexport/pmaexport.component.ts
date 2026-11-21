@@ -22,7 +22,7 @@ import {buildRowFilter, compareValues, countTree, FilterContext, filterTreeMatch
 const COLUMN_WIDTHS_KEY = 'minerva.pmaExport.columnWidths';
 const SHOW_FILTERS_KEY = 'minerva.pmaExport.showColumnFilters';
 
-interface PmaExportRowView extends FilterContext {
+export interface PmaExportRowView extends FilterContext {
   name: string;
   pmaExportRow?: PmaSummaryExportRow;
   children?: PmaExportRowView[];
@@ -107,6 +107,13 @@ export class PMAExportComponent implements OnInit {
   private sourceTree: PmaExportRowView[] = [];
   /** Rows the user collapsed by hand (by row id); kept across sort/filter */
   private collapsedIds = new Set<number>();
+
+  /** Row charted beside the table (by row id; the root by default) */
+  selectedRowId: number = null;
+  selectedRow: PmaExportRowView = null;
+  selectedParent: PmaExportRowView = null;
+  /** Period shown in the segment chart */
+  chartPeriod = 'YTD';
 
   /** Text of each column's filter box, by column id */
   columnFilters: Record<string, string> = {};
@@ -215,7 +222,20 @@ export class PMAExportComponent implements OnInit {
     this.sourceTree = rootTreeView ? [rootTreeView] : [];
     this.totalRows = countTree(this.sourceTree);
     this.collapsedIds.clear();
+    this.selectRowById(this.sourceTree[0]?.pmaExportRow?.id ?? null);
     this.applyView();
+  }
+
+  /** Clicking a table row charts it */
+  selectRow(node: ExampleFlatNode) {
+    this.selectRowById(node.id);
+  }
+
+  private selectRowById(id: number) {
+    const found = findWithParent(this.sourceTree, id);
+    this.selectedRowId = found ? id : null;
+    this.selectedRow = found?.node ?? null;
+    this.selectedParent = found?.parent ?? null;
   }
 
   toggle(node: ExampleFlatNode) {
@@ -309,4 +329,19 @@ export class PMAExportComponent implements OnInit {
 
 
 
+}
+
+/** Finds a row by id in the API tree, with its parent (null for a top-level row). */
+function findWithParent(nodes: PmaExportRowView[], id: number, parent: PmaExportRowView = null)
+  : { node: PmaExportRowView; parent: PmaExportRowView } | null {
+  for (const node of nodes ?? []) {
+    if (node.pmaExportRow?.id === id) {
+      return {node, parent};
+    }
+    const found = findWithParent(node.children, id, node);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
 }

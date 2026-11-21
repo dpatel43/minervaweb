@@ -1,0 +1,78 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<!-- Chart 1: returns by period for the selected row -->
+<section aria-labelledby="period-chart-title" class="chart">
+  <header class="chart-header">
+    <h2 class="chart-title" id="period-chart-title">Returns by period</h2>
+    <div [title]="row?.name" class="chart-subtitle">{{ row?.name }}</div>
+  </header>
+  <svg [attr.height]="periodHeight" [attr.viewBox]="'0 0 ' + width + ' ' + periodHeight" [attr.width]="width"
+       aria-label="Returns by period. Values are also in the table." class="chart-svg" role="group">
+    <!-- recessive grid and tick labels -->
+    <g class="grid">
+      <ng-container *ngFor="let t of ticks">
+        <line [attr.x1]="plotLeft" [attr.x2]="plotRight" [attr.y1]="t.y" [attr.y2]="t.y"></line>
+        <text [attr.x]="plotLeft - 6" [attr.y]="t.y + 3.5" class="tick" text-anchor="end">{{ t.label }}</text>
+      </ng-container>
+    </g>
+    <line [attr.x1]="plotLeft" [attr.x2]="plotRight" [attr.y1]="zeroY" [attr.y2]="zeroY" class="baseline"></line>
+
+    <g *ngFor="let c of columns" (blur)="hideTooltip()" (click)="selectPeriod(c.key)"
+       (focus)="showTooltip($event, c.label, c.display)" (keydown.enter)="selectPeriod(c.key)"
+       (keydown.space)="selectPeriod(c.key); $event.preventDefault()" (mouseleave)="hideTooltip()"
+       (mousemove)="showTooltip($event, c.label, c.display)"
+       [attr.aria-label]="c.label + ': ' + c.display + (c.key === period ? ', compared below' : '. Select to compare segments for this period')"
+       [attr.aria-pressed]="c.key === period" [class.selected]="c.key === period" class="column" role="button"
+       tabindex="0">
+      <!-- the whole band is the hit target, bigger than the mark -->
+      <rect [attr.height]="periodHeight - 4" [attr.width]="c.bandWidth" [attr.x]="c.bandX" class="hit" y="2"></rect>
+      <path *ngIf="c.path" [attr.d]="c.path" [class.negative]="c.negative" class="bar"></path>
+      <text *ngIf="c.showLabel" [attr.x]="c.bandX + c.bandWidth / 2" [attr.y]="c.labelY" class="value"
+            text-anchor="middle">{{ c.display }}</text>
+      <text [attr.x]="c.bandX + c.bandWidth / 2" [attr.y]="periodHeight - 12" class="period"
+            text-anchor="middle">{{ c.key }}</text>
+      <rect *ngIf="c.key === period" [attr.x]="c.bandX + c.bandWidth / 2 - 10" [attr.y]="periodHeight - 6"
+            class="period-marker" height="2" width="20"></rect>
+    </g>
+  </svg>
+  <p class="chart-note">Select a column to compare segments for that period.</p>
+</section>
+
+<!-- Chart 2: segment returns for one period -->
+<section aria-labelledby="segment-chart-title" class="chart">
+  <header class="chart-header">
+    <h2 class="chart-title" id="segment-chart-title">Segment returns, {{ periodLabel }}</h2>
+    <div *ngIf="segmentContainer" [title]="segmentContainer.name" class="chart-subtitle">
+      Within {{ segmentContainer.name }}
+    </div>
+  </header>
+
+  <svg *ngIf="segments.length; else noSegments" [attr.height]="segmentHeight"
+       [attr.viewBox]="'0 0 ' + width + ' ' + segmentHeight" [attr.width]="width"
+       aria-label="Segment returns. Values are also in the table." class="chart-svg" role="group">
+    <line [attr.x1]="segmentZeroX" [attr.x2]="segmentZeroX" [attr.y2]="segmentHeight - 2" class="baseline"
+          y1="2"></line>
+    <g *ngFor="let s of segments" (blur)="hideTooltip()" (focus)="showTooltip($event, s.name, s.display)"
+       (mouseleave)="hideTooltip()" (mousemove)="showTooltip($event, s.name, s.display)"
+       [attr.aria-label]="s.name + ': ' + s.display" [class.emphasised]="s.emphasised" class="segment" role="img"
+       tabindex="0">
+      <rect [attr.width]="width" [attr.y]="s.y - 6" class="hit" height="26" x="0"></rect>
+      <text [attr.y]="s.y + 10.5" class="segment-name" x="0">{{ s.shortName }}<title>{{ s.name }}</title></text>
+      <path *ngIf="s.path" [attr.d]="s.path" [class.negative]="s.negative" class="bar"></path>
+      <text [attr.text-anchor]="s.labelAnchor" [attr.x]="s.labelX" [attr.y]="s.y + 10.5" class="value">{{ s.display }}</text>
+    </g>
+  </svg>
+  <ng-template #noSegments>
+    <p class="chart-empty">{{ row?.name }} has no segments to compare.</p>
+  </ng-template>
+</section>
+
+<div *ngIf="tooltip" [style.left.px]="tooltip.x" [style.top.px]="tooltip.y" class="chart-tooltip" role="presentation">
+  <strong>{{ tooltip.value }}</strong>
+  <span>{{ tooltip.label }}</span>
+</div>

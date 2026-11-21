@@ -62,65 +62,76 @@
         Choose an account, profile and date, then select Retrieve.
       </div>
 
-      <table *ngIf="dataSource" [dataSource]="dataSource" [style.width.px]="totalWidth"
-             (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
-        <colgroup>
-          <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">
-        </colgroup>
-        <ng-container matColumnDef="name">
-          <th *matHeaderCellDef [appColumnResize]="columnWidths" (resized)="saveColumnWidths()" columnKey="name"
-              mat-header-cell mat-sort-header>Name</th>
-          <td *matCellDef="let data" mat-cell>
-            <div [style.paddingLeft.px]="data.level * 16" class="tree-cell">
-              <button (click)="toggle(data)" [attr.aria-label]="'Toggle ' + data.name"
-                      [class.invisible]="!data.expandable" class="tree-toggle" type="button">
-                <i [class.bi-chevron-down]="treeControl.isExpanded(data)"
-                   [class.bi-chevron-right]="!treeControl.isExpanded(data)" class="bi"></i>
-              </button>
-              <span [title]="data.name" class="text-truncate">{{ data.name }}</span>
-            </div>
-          </td>
-        </ng-container>
+      <div *ngIf="dataSource" class="export-layout">
+        <div class="export-table">
+          <table [dataSource]="dataSource" [style.width.px]="totalWidth"
+                 (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
+            <colgroup>
+              <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">
+            </colgroup>
+            <ng-container matColumnDef="name">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" (resized)="saveColumnWidths()" columnKey="name"
+                  mat-header-cell mat-sort-header>Name</th>
+              <td *matCellDef="let data" mat-cell>
+                <div [style.paddingLeft.px]="data.level * 16" class="tree-cell">
+                  <button (click)="toggle(data); $event.stopPropagation()" [attr.aria-label]="'Toggle ' + data.name"
+                          [class.invisible]="!data.expandable" class="tree-toggle" type="button">
+                    <i [class.bi-chevron-down]="treeControl.isExpanded(data)"
+                       [class.bi-chevron-right]="!treeControl.isExpanded(data)" class="bi"></i>
+                  </button>
+                  <span [title]="data.name" class="text-truncate">{{ data.name }}</span>
+                </div>
+              </td>
+            </ng-container>
 
-        <!-- Filter row: one box per column -->
-        <ng-container matColumnDef="filter-name">
-          <th *matHeaderCellDef class="filter-cell" mat-header-cell>
-            <input #f (input)="onFilterChange('name', f.value)" (keydown.escape)="f.value = ''; onFilterChange('name', '')"
-                   [value]="columnFilters['name'] ?? ''" aria-label="Filter Name" class="form-control column-filter"
-                   placeholder="Filter">
-          </th>
-        </ng-container>
-        <ng-container *ngFor="let period of periods" [matColumnDef]="'filter-' + period.key">
-          <th *matHeaderCellDef class="filter-cell" mat-header-cell>
-            <input #f (input)="onFilterChange(period.key, f.value)"
-                   (keydown.escape)="f.value = ''; onFilterChange(period.key, '')" [attr.aria-label]="'Filter ' + period.label"
-                   [value]="columnFilters[period.key] ?? ''" class="form-control column-filter num" placeholder="e.g. >0"
-                   title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
-          </th>
-        </ng-container>
+            <!-- Filter row: one box per column -->
+            <ng-container matColumnDef="filter-name">
+              <th *matHeaderCellDef class="filter-cell" mat-header-cell>
+                <input #f (input)="onFilterChange('name', f.value)" (keydown.escape)="f.value = ''; onFilterChange('name', '')"
+                       [value]="columnFilters['name'] ?? ''" aria-label="Filter Name" class="form-control column-filter"
+                       placeholder="Filter">
+              </th>
+            </ng-container>
+            <ng-container *ngFor="let period of periods" [matColumnDef]="'filter-' + period.key">
+              <th *matHeaderCellDef class="filter-cell" mat-header-cell>
+                <input #f (input)="onFilterChange(period.key, f.value)"
+                       (keydown.escape)="f.value = ''; onFilterChange(period.key, '')" [attr.aria-label]="'Filter ' + period.label"
+                       [value]="columnFilters[period.key] ?? ''" class="form-control column-filter num" placeholder="e.g. >0"
+                       title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
+              </th>
+            </ng-container>
 
-        <ng-container *ngFor="let period of periods" [matColumnDef]="period.key">
-          <th *matHeaderCellDef [appColumnResize]="columnWidths" [columnKey]="period.key" (resized)="saveColumnWidths()"
-              arrowPosition="before" class="num" mat-header-cell mat-sort-header>{{ period.label }}</th>
-          <td *matCellDef="let data" mat-cell
-              [class.negative]="data.pmaExportRow.accountValues[period.key]?.BaseTotalRor < 0"
-              class="num">
-            {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | number:'.3-3' }}
-          </td>
-        </ng-container>
+            <ng-container *ngFor="let period of periods" [matColumnDef]="period.key">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [columnKey]="period.key" (resized)="saveColumnWidths()"
+                  arrowPosition="before" class="num" mat-header-cell mat-sort-header>{{ period.label }}</th>
+              <td *matCellDef="let data" mat-cell
+                  [class.negative]="data.pmaExportRow.accountValues[period.key]?.BaseTotalRor < 0"
+                  class="num">
+                {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | number:'.3-3' }}
+              </td>
+            </ng-container>
 
-        <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
-        <tr *matHeaderRowDef="filterColumns; sticky: true" [class.d-none]="!filtersVisible" class="filter-row"
-            mat-header-row></tr>
-        <tr *matNoDataRow class="mat-mdc-row">
-          <td [attr.colspan]="displayedColumns.length" class="mat-mdc-cell results-empty">
-            No rows match the column filters.
-          </td>
-        </tr>
-        <tr *matRowDef="let row; columns: displayedColumns;" [class.filter-context]="row.filterContext"
-            [class.tree-parent]="row.expandable"
-            [class.tree-root]="row.level === 0" mat-row></tr>
-      </table>
+            <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
+            <tr *matHeaderRowDef="filterColumns; sticky: true" [class.d-none]="!filtersVisible" class="filter-row"
+                mat-header-row></tr>
+            <tr *matNoDataRow class="mat-mdc-row">
+              <td [attr.colspan]="displayedColumns.length" class="mat-mdc-cell results-empty">
+                No rows match the column filters.
+              </td>
+            </tr>
+            <tr (click)="selectRow(row)" *matRowDef="let row; columns: displayedColumns;"
+                [attr.aria-selected]="row.id === selectedRowId" [class.filter-context]="row.filterContext"
+                [class.row-selected]="row.id === selectedRowId" class="chart-source-row"
+                [class.tree-parent]="row.expandable"
+                [class.tree-root]="row.level === 0" mat-row></tr>
+          </table>
+        </div>
+        <aside *ngIf="selectedRow" aria-label="Charts for the selected row" class="export-charts">
+          <app-pma-return-charts (periodChange)="chartPeriod = $event" [parent]="selectedParent"
+                                 [period]="chartPeriod" [periods]="periods"
+                                 [row]="selectedRow"></app-pma-return-charts>
+        </aside>
+      </div>
     </div>
   </div>
 </div>

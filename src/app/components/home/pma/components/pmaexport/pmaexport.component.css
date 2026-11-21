@@ -4,3 +4,63 @@
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/* Table and charts side by side; each scrolls on its own so the table keeps its sticky header */
+.results-card .card-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.export-layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.export-table {
+  /* Keep the table at full width; scroll it only if the charts would get less than 290px */
+  flex: 0 0 auto;
+  max-width: calc(100% - 290px);
+  overflow: auto;
+}
+
+.export-charts {
+  flex: 1 1 290px;
+  min-width: 290px;
+  padding: 10px 14px 12px;
+  border-left: 1px solid var(--app-border);
+  overflow: auto;
+}
+
+/* Narrow screens: charts below the table */
+@media (max-width: 1100px) {
+  .export-layout {
+    flex-direction: column;
+  }
+
+  .export-table {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  .export-charts {
+    flex: 0 0 auto;
+    min-width: 0;
+    border-left: 0;
+    border-top: 1px solid var(--app-border);
+  }
+}
+
+/* Clicking a row charts it */
+.chart-source-row {
+  cursor: pointer;
+}
+
+.mat-mdc-row.row-selected .mat-mdc-cell {
+  background: rgba(var(--app-navy-rgb), .08);
+}
+
+.mat-mdc-row.row-selected .mat-mdc-cell:first-child {
+  box-shadow: inset 3px 0 0 var(--app-navy);
+}

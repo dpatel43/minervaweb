@@ -1,6 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {PMAExportComponent} from './pmaexport.component';
+import {PmaReturnChartsComponent} from './pma-return-charts.component';
 import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {MineraCommonModule} from '../../../../common/minera-common.module';
@@ -14,7 +15,7 @@ describe('PMAExportComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       // Not standalone: declared here with the modules PmaModule gives it
-      declarations: [PMAExportComponent],
+      declarations: [PMAExportComponent, PmaReturnChartsComponent],
       imports: [MineraCommonModule, HomeModule],
       providers: [...apiTestingProviders, provideRouter([]), provideNoopAnimations()]
     })
