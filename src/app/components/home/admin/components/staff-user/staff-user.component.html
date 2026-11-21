@@ -1,34 +1,26 @@
 <div class="report-page">
-  <div class="page-header">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb page-breadcrumb">
-        <li [class.active]="listMode" class="breadcrumb-item">
-          <h1 *ngIf="listMode">Staff users</h1>
-          <a (click)="list(); $event.preventDefault()" *ngIf="detailMode" href="#">Staff users</a>
-        </li>
-        <li *ngIf="detailMode" aria-current="page" class="breadcrumb-item active">{{ title }}</li>
-      </ol>
-    </nav>
-    <div class="d-flex gap-2">
-      <button (click)="createNew()" *ngIf="listMode" class="btn btn-primary" type="button">
-        <i class="bi bi-plus-lg me-1"></i>New staff user
+  <div *ngIf="detailMode" class="detail-toolbar">
+    <button (click)="list()" class="btn btn-outline-secondary" type="button">
+      <i class="bi bi-arrow-left me-1"></i>Back to list
+    </button>
+    <span class="detail-title">{{ title }}</span>
+    <div class="ms-auto d-flex gap-2">
+      <button (click)="reload()" [disabled]="!staffUser?.staffUserId" class="btn btn-outline-secondary"
+              title="Discard changes and load the saved staff user again" type="button">
+        <i class="bi bi-arrow-clockwise me-1"></i>Reload
       </button>
-      <ng-container *ngIf="detailMode">
-        <button (click)="list()" class="btn btn-outline-secondary" type="button">
-          <i class="bi bi-arrow-left me-1"></i>Back to list
-        </button>
-        <button (click)="reload()" [disabled]="!staffUser?.staffUserId" class="btn btn-outline-secondary"
-                title="Discard changes and load the saved staff user again" type="button">
-          <i class="bi bi-arrow-clockwise me-1"></i>Reload
-        </button>
-        <button (click)="saveDetail()" [disabled]="!canSave" class="btn btn-primary" type="button">
-          <i class="bi bi-check-lg me-1"></i>Save
-        </button>
-      </ng-container>
+      <button (click)="saveDetail()" [disabled]="!canSave" class="btn btn-primary" type="button">
+        <i class="bi bi-check-lg me-1"></i>Save
+      </button>
     </div>
   </div>
 
   <div *ngIf="listMode" class="card results-card fit-content">
+    <div class="card-header results-toolbar">
+      <button (click)="createNew()" class="btn btn-primary ms-auto" type="button">
+        <i class="bi bi-plus-lg me-1"></i>New staff user
+      </button>
+    </div>
     <div class="card-body d-flex flex-column">
       <app-staff-user-list (onSelectedIdChange)="edit($event)"></app-staff-user-list>
     </div>

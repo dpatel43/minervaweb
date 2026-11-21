@@ -21,7 +21,8 @@
           </a>
           <ul [attr.aria-labelledby]="'moduleGroup' + i" class="dropdown-menu">
             <li *ngFor="let module of moduleGroup.modules">
-              <a [routerLink]="module.homeURL" class="dropdown-item" routerLinkActive="active">{{ module.name }}</a>
+              <a (click)="openModule(module); $event.preventDefault()" [attr.href]="'#' + moduleUrl(module)"
+                 class="dropdown-item">{{ module.name }}</a>
             </li>
           </ul>
         </li>
@@ -34,7 +35,20 @@
     </div>
   </div>
 </nav>
-<div class="main-content">
+<div class="app-tabs" role="tablist">
+  <div *ngFor="let tab of tabService.tabs$ | async; trackBy: trackTab"
+       (auxclick)="tab.closable && $event.button === 1 && closeTab(tab, $event)"
+       (click)="tabService.activate(tab)" (keydown.enter)="tabService.activate(tab)"
+       [attr.aria-selected]="tab.url === (tabService.activeUrl$ | async)"
+       [class.active]="tab.url === (tabService.activeUrl$ | async)" [title]="tab.title" class="app-tab" role="tab"
+       tabindex="0">
+    <i *ngIf="!tab.closable" class="bi bi-house-door"></i>
+    <span class="app-tab-title">{{ tab.title }}</span>
+    <button (click)="closeTab(tab, $event)" *ngIf="tab.closable" [attr.aria-label]="'Close ' + tab.title"
+            class="app-tab-close" type="button"><i class="bi bi-x"></i></button>
+  </div>
+</div>
+<div class="main-content" role="tabpanel">
   <router-outlet></router-outlet>
 </div>
 
