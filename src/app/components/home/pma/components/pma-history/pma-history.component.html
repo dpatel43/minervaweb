@@ -77,108 +77,119 @@
     </div>
   </form>
 
-  <div class="card results-card">
+  <div class="card results-card with-charts">
     <div class="card-body">
       <div *ngIf="!dataSource" class="results-empty">
         Choose an account, profile and date range, then select Retrieve.
       </div>
 
-      <table *ngIf="dataSource" [dataSource]="dataSource" [style.width.px]="totalWidth"
-             (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
-        <colgroup>
-          <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">
-        </colgroup>
-        <!-- Group header row -->
-        <ng-container matColumnDef="group-info">
-          <th *matHeaderCellDef [attr.colspan]="3" mat-header-cell></th>
-        </ng-container>
-        <ng-container matColumnDef="group-account">
-          <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Portfolio</th>
-        </ng-container>
-        <ng-container matColumnDef="group-benchmark">
-          <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Benchmark</th>
-        </ng-container>
+      <div *ngIf="dataSource" class="report-split">
+        <div class="report-split-table">
+          <table [dataSource]="dataSource" [style.width.px]="totalWidth"
+                 (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
+            <colgroup>
+              <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">
+            </colgroup>
+            <!-- Group header row -->
+            <ng-container matColumnDef="group-info">
+              <th *matHeaderCellDef [attr.colspan]="3" mat-header-cell></th>
+            </ng-container>
+            <ng-container matColumnDef="group-account">
+              <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Portfolio</th>
+            </ng-container>
+            <ng-container matColumnDef="group-benchmark">
+              <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Benchmark</th>
+            </ng-container>
 
-        <!-- Row info -->
-        <ng-container matColumnDef="name">
-          <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="name" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>Name</th>
-          <td *matCellDef="let data" mat-cell>
-            <div [style.paddingLeft.px]="data.level * 16" class="tree-cell">
-              <button (click)="toggle(data)" [attr.aria-label]="'Toggle ' + data.name"
-                      [class.invisible]="!data.expandable" class="tree-toggle" type="button">
-                <i [class.bi-chevron-down]="treeControl.isExpanded(data)"
-                   [class.bi-chevron-right]="!treeControl.isExpanded(data)" class="bi"></i>
-              </button>
-              <span [title]="data.name" class="text-truncate">{{ data.name }}</span>
-            </div>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="startDate">
-          <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="startDate" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>Start Date</th>
-          <td *matCellDef="let data" class="text-nowrap" mat-cell>{{ data.pmaExportRow.startDate }}</td>
-        </ng-container>
-        <ng-container matColumnDef="endDate">
-          <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="endDate" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>End Date</th>
-          <td *matCellDef="let data" class="text-nowrap" mat-cell>{{ data.pmaExportRow.endDate }}</td>
-        </ng-container>
+            <!-- Row info -->
+            <ng-container matColumnDef="name">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="name" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>Name</th>
+              <td *matCellDef="let data" mat-cell>
+                <div [style.paddingLeft.px]="data.level * 16" class="tree-cell">
+                  <button (click)="toggle(data); $event.stopPropagation()" [attr.aria-label]="'Toggle ' + data.name"
+                          [class.invisible]="!data.expandable" class="tree-toggle" type="button">
+                    <i [class.bi-chevron-down]="treeControl.isExpanded(data)"
+                       [class.bi-chevron-right]="!treeControl.isExpanded(data)" class="bi"></i>
+                  </button>
+                  <span [title]="data.name" class="text-truncate">{{ data.name }}</span>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="startDate">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="startDate" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>Start Date</th>
+              <td *matCellDef="let data" class="text-nowrap" mat-cell>{{ data.pmaExportRow.startDate }}</td>
+            </ng-container>
+            <ng-container matColumnDef="endDate">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" columnKey="endDate" (resized)="saveColumnWidths()" mat-header-cell mat-sort-header>End Date</th>
+              <td *matCellDef="let data" class="text-nowrap" mat-cell>{{ data.pmaExportRow.endDate }}</td>
+            </ng-container>
 
-        <!-- Filter row: one box per column -->
-        <ng-container *ngFor="let c of textFilterColumns" [matColumnDef]="'filter-' + c.key">
-          <th *matHeaderCellDef class="filter-cell" mat-header-cell>
-            <input #f (input)="onFilterChange(c.key, f.value)" (keydown.escape)="f.value = ''; onFilterChange(c.key, '')"
-                   [attr.aria-label]="'Filter ' + c.label" [value]="columnFilters[c.key] ?? ''"
-                   class="form-control column-filter" placeholder="Filter">
-          </th>
-        </ng-container>
-        <ng-container *ngFor="let group of ['account', 'benchmark']">
-          <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'filter-' + group + '-' + m.key">
-            <th *matHeaderCellDef [class.group-start]="first" class="filter-cell" mat-header-cell>
-              <input #f (input)="onFilterChange(group + '-' + m.key, f.value)"
-                     (keydown.escape)="f.value = ''; onFilterChange(group + '-' + m.key, '')"
-                     [attr.aria-label]="'Filter ' + group + ' ' + m.label" [value]="columnFilters[group + '-' + m.key] ?? ''"
-                     class="form-control column-filter num" placeholder="e.g. >0"
-                     title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
-            </th>
-          </ng-container>
-        </ng-container>
+            <!-- Filter row: one box per column -->
+            <ng-container *ngFor="let c of textFilterColumns" [matColumnDef]="'filter-' + c.key">
+              <th *matHeaderCellDef class="filter-cell" mat-header-cell>
+                <input #f (input)="onFilterChange(c.key, f.value)" (keydown.escape)="f.value = ''; onFilterChange(c.key, '')"
+                       [attr.aria-label]="'Filter ' + c.label" [value]="columnFilters[c.key] ?? ''"
+                       class="form-control column-filter" placeholder="Filter">
+              </th>
+            </ng-container>
+            <ng-container *ngFor="let group of ['account', 'benchmark']">
+              <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'filter-' + group + '-' + m.key">
+                <th *matHeaderCellDef [class.group-start]="first" class="filter-cell" mat-header-cell>
+                  <input #f (input)="onFilterChange(group + '-' + m.key, f.value)"
+                         (keydown.escape)="f.value = ''; onFilterChange(group + '-' + m.key, '')"
+                         [attr.aria-label]="'Filter ' + group + ' ' + m.label" [value]="columnFilters[group + '-' + m.key] ?? ''"
+                         class="form-control column-filter num" placeholder="e.g. >0"
+                         title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
+                </th>
+              </ng-container>
+            </ng-container>
 
-        <!-- Portfolio metrics -->
-        <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'account-' + m.key">
-          <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'account-' + m.key"
-              (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
-              mat-sort-header>{{ m.label }}</th>
-          <td *matCellDef="let data" [class.group-start]="first"
-              [class.negative]="m.signed && data.pmaExportRow.accountValues?.[m.field] < 0"
-              class="num" mat-cell>
-            {{ data.pmaExportRow.accountValues?.[m.field] | number:m.format }}
-          </td>
-        </ng-container>
+            <!-- Portfolio metrics -->
+            <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'account-' + m.key">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'account-' + m.key"
+                  (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
+                  mat-sort-header>{{ m.label }}</th>
+              <td *matCellDef="let data" [class.group-start]="first"
+                  [class.negative]="m.signed && data.pmaExportRow.accountValues?.[m.field] < 0"
+                  class="num" mat-cell>
+                {{ data.pmaExportRow.accountValues?.[m.field] | number:m.format }}
+              </td>
+            </ng-container>
 
-        <!-- Benchmark metrics -->
-        <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'benchmark-' + m.key">
-          <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'benchmark-' + m.key"
-              (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
-              mat-sort-header>{{ m.label }}</th>
-          <td *matCellDef="let data" [class.group-start]="first"
-              [class.negative]="m.signed && data.pmaExportRow.benchmarkValues?.[m.field] < 0"
-              class="num" mat-cell>
-            {{ data.pmaExportRow.benchmarkValues?.[m.field] | number:m.format }}
-          </td>
-        </ng-container>
+            <!-- Benchmark metrics -->
+            <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'benchmark-' + m.key">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'benchmark-' + m.key"
+                  (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
+                  mat-sort-header>{{ m.label }}</th>
+              <td *matCellDef="let data" [class.group-start]="first"
+                  [class.negative]="m.signed && data.pmaExportRow.benchmarkValues?.[m.field] < 0"
+                  class="num" mat-cell>
+                {{ data.pmaExportRow.benchmarkValues?.[m.field] | number:m.format }}
+              </td>
+            </ng-container>
 
-        <tr *matHeaderRowDef="groupColumns; sticky: true" class="group-header-row" mat-header-row></tr>
-        <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
-        <tr *matHeaderRowDef="filterColumns; sticky: true" [class.d-none]="!filtersVisible" class="filter-row"
-            mat-header-row></tr>
-        <tr *matNoDataRow class="mat-mdc-row">
-          <td [attr.colspan]="displayedColumns.length" class="mat-mdc-cell results-empty">
-            No rows match the column filters.
-          </td>
-        </tr>
-        <tr *matRowDef="let row; columns: displayedColumns;" [class.filter-context]="row.filterContext"
-            [class.tree-parent]="row.expandable"
-            [class.tree-root]="row.level === 0" mat-row></tr>
-      </table>
+            <tr *matHeaderRowDef="groupColumns; sticky: true" class="group-header-row" mat-header-row></tr>
+            <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
+            <tr *matHeaderRowDef="filterColumns; sticky: true" [class.d-none]="!filtersVisible" class="filter-row"
+                mat-header-row></tr>
+            <tr *matNoDataRow class="mat-mdc-row">
+              <td [attr.colspan]="displayedColumns.length" class="mat-mdc-cell results-empty">
+                No rows match the column filters.
+              </td>
+            </tr>
+            <tr (click)="selectRow(row)" *matRowDef="let row; columns: displayedColumns;"
+                [attr.aria-selected]="row.key === selectedKey" [class.filter-context]="row.filterContext"
+                [class.row-selected]="row.key === selectedKey" class="chart-source-row"
+                [class.tree-parent]="row.expandable"
+                [class.tree-root]="row.level === 0" mat-row></tr>
+          </table>
+        </div>
+        <aside *ngIf="selectedRow" aria-label="Charts for the selected row" class="report-split-charts">
+          <app-pma-return-charts (periodChange)="onChartPeriodChange($event)" [parent]="selectedParent"
+                                 [period]="chartPeriod" [periods]="chartPeriods" [row]="selectedRow"
+                                 valueFormat=".3-5"></app-pma-return-charts>
+        </aside>
+      </div>
     </div>
   </div>
 </div>

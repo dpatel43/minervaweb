@@ -1,7 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {PMAExportComponent} from './pmaexport.component';
-import {PmaReturnChartsComponent} from './pma-return-charts.component';
+import {PmaReturnChartsComponent} from '../return-charts/pma-return-charts.component';
 import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {MineraCommonModule} from '../../../../common/minera-common.module';

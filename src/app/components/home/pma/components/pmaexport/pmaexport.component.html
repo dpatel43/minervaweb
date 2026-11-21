@@ -56,14 +56,14 @@
     </div>
   </form>
 
-  <div class="card results-card">
+  <div class="card results-card with-charts">
     <div class="card-body">
       <div *ngIf="!dataSource" class="results-empty">
         Choose an account, profile and date, then select Retrieve.
       </div>
 
-      <div *ngIf="dataSource" class="export-layout">
-        <div class="export-table">
+      <div *ngIf="dataSource" class="report-split">
+        <div class="report-split-table">
           <table [dataSource]="dataSource" [style.width.px]="totalWidth"
                  (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
             <colgroup>
@@ -126,7 +126,7 @@
                 [class.tree-root]="row.level === 0" mat-row></tr>
           </table>
         </div>
-        <aside *ngIf="selectedRow" aria-label="Charts for the selected row" class="export-charts">
+        <aside *ngIf="selectedRow" aria-label="Charts for the selected row" class="report-split-charts">
           <app-pma-return-charts (periodChange)="chartPeriod = $event" [parent]="selectedParent"
                                  [period]="chartPeriod" [periods]="periods"
                                  [row]="selectedRow"></app-pma-return-charts>

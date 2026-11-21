@@ -17,6 +17,7 @@ import {UntypedFormControl, UntypedFormGroup} from "@angular/forms";
 import {finalize} from "rxjs/operators";
 import {ColumnWidths} from "../../../../common/column-resize.directive";
 import {Sort} from "@angular/material/sort";
+import {findWithParent} from '../return-charts/pma-return-charts.component';
 import {buildRowFilter, compareValues, countTree, FilterContext, filterTreeMatches, sortTree} from "../../../../common/tree-table.utils";
 
 const COLUMN_WIDTHS_KEY = 'minerva.pmaExport.columnWidths';
@@ -329,19 +330,4 @@ export class PMAExportComponent implements OnInit {
 
 
 
-}
-
-/** Finds a row by id in the API tree, with its parent (null for a top-level row). */
-function findWithParent(nodes: PmaExportRowView[], id: number, parent: PmaExportRowView = null)
-  : { node: PmaExportRowView; parent: PmaExportRowView } | null {
-  for (const node of nodes ?? []) {
-    if (node.pmaExportRow?.id === id) {
-      return {node, parent};
-    }
-    const found = findWithParent(node.children, id, node);
-    if (found) {
-      return found;
-    }
-  }
-  return null;
 }

@@ -94,4 +94,23 @@ describe('PmaReturnChartsComponent', () => {
     component.selectPeriod('YTD'); // already shown: no event
     expect(emitted).toEqual(['MTD']);
   });
+
+  it('stacks multi-line period labels, such as start and end date, and grows to fit them', () => {
+    const before = component.periodHeight;
+    component.periods = periods.map(p => ({...p, axisLines: ['Aug 1', 'Aug 31']}));
+    render(total);
+    expect(component.periodHeight).toBe(before + 12);
+    const labels = [...fixture.nativeElement.querySelectorAll('text.period')].map((t: Element) => t.textContent.trim());
+    expect(labels.slice(0, 2)).toEqual(['Aug 1', 'Aug 31']);
+  });
+
+  it('labels every n-th period, counting back from the latest, when periods are crowded', () => {
+    component.periods = Array.from({length: 24}, (_, i) => ({key: 'p' + i, label: 'Period ' + i, short: 'Mon ' + i}));
+    component.width = 300;
+    render(total);
+    const shown = component.columns.filter(c => c.showPeriod);
+    expect(shown.length).toBeLessThan(24);
+    expect(shown[shown.length - 1].key).toBe('p23');
+    expect(shown[0].lines).toEqual([jasmine.stringMatching(/^Mon /)]);
+  });
 });

@@ -23,7 +23,7 @@ import {StoreDevtoolsModule} from "@ngrx/store-devtools";
 import {environment} from "../../../../environments/environment";
 import {ProcessorComponent} from './components/processor/processor.component';
 import {PMAExportComponent} from './components/pmaexport/pmaexport.component';
-import {PmaReturnChartsComponent} from './components/pmaexport/pma-return-charts.component';
+import {PmaReturnChartsComponent} from './components/return-charts/pma-return-charts.component';
 import {PmaHistoryComponent} from './components/pma-history//pma-history.component';
 import {AgGridAngular} from "@ag-grid-community/angular";
 

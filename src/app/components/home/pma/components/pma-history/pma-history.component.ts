@@ -6,7 +6,7 @@
  */
 
 import {Component, Inject, LOCALE_ID} from '@angular/core';
-import {formatNumber} from '@angular/common';
+import {formatDate, formatNumber} from '@angular/common';
 import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
 import {PmaExportService} from '../../services/pmaexport/pma-export.service';
@@ -17,6 +17,7 @@ import {FlatTreeControl} from '@angular/cdk/tree';
 import {finalize} from 'rxjs/operators';
 import {ColumnWidths} from '../../../../common/column-resize.directive';
 import {Sort} from '@angular/material/sort';
+import {ChartPeriod, findWithParent, ReturnNode} from '../return-charts/pma-return-charts.component';
 import {buildRowFilter, compareValues, countTree, FilterContext, filterTreeMatches, sortTree} from '../../../../common/tree-table.utils';
 
 const COLUMN_WIDTHS_KEY = 'minerva.pmaHistory.columnWidths';
@@ -59,6 +60,20 @@ export class PmaHistoryComponent {
   private sourceTree: PmaHistoryRowView[] = [];
   /** Rows the user collapsed by hand (by row key); kept across sort/filter */
   private collapsedKeys = new Set<string>();
+
+  /**
+   * Charts beside the table. Each period has its own tree in the API response;
+   * the charts use one tree (shaped like the latest period's) holding every
+   * period's portfolio return per row.
+   */
+  chartTree: ReturnNode[] = [];
+  chartPeriods: ChartPeriod[] = [];
+  /** Period shown in the segment chart; the latest by default */
+  chartPeriod: string = null;
+  /** Table row being charted (row key, so one period's copy is highlighted) */
+  selectedKey: string = null;
+  selectedRow: ReturnNode = null;
+  selectedParent: ReturnNode = null;
 
   /** Text of each column's filter box, by column id */
   columnFilters: Record<string, string> = {};
@@ -215,6 +230,7 @@ export class PmaHistoryComponent {
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
     let rootTreeView = [];
+    const byKey = new Map<string, PmaHistoryRowView>();
     let rowsMap: Map<string, PmaHistoryRow[]> = new Map(Object.entries(pmaExportResponse.exportRows));
     for (const [key, value] of rowsMap.entries()) {
       let map = new Map<number, PmaHistoryRowView>();
@@ -228,6 +244,7 @@ export class PmaHistoryComponent {
           children: []
         }
         map.set(exportRow.id, exportRowView);
+        byKey.set(exportRowView.key, exportRowView);
         if (exportRow.id == 0) {
           rootTreeView.push(exportRowView);
         }
@@ -244,7 +261,71 @@ export class PmaHistoryComponent {
     this.sourceTree = rootTreeView;
     this.totalRows = countTree(this.sourceTree);
     this.collapsedKeys.clear();
+    this.buildCharts([...rowsMap.keys()], byKey, rowsMap);
     this.applyView();
+  }
+
+  /** Clicking a table row charts that row, with its period selected */
+  selectRow(node: ExampleFlatNode) {
+    const period = node.key.slice(0, node.key.lastIndexOf('|'));
+    this.chartPeriod = period;
+    this.selectRowById(node.pmaExportRow?.id, period);
+  }
+
+  /** A period picked in the charts moves the table highlight to that period's row */
+  onChartPeriodChange(period: string) {
+    this.chartPeriod = period;
+    this.selectRowById(this.selectedRow?.pmaExportRow?.id, period);
+  }
+
+  private selectRowById(id: number, period: string) {
+    const found = id == null ? null : findWithParent(this.chartTree, id);
+    this.selectedRow = found?.node ?? null;
+    this.selectedParent = found?.parent ?? null;
+    this.selectedKey = found ? `${period}|${id}` : null;
+  }
+
+  private buildCharts(periodKeys: string[], byKey: Map<string, PmaHistoryRowView>,
+                      rowsMap: Map<string, PmaHistoryRow[]>) {
+    const latest = periodKeys[periodKeys.length - 1];
+    const shape = this.sourceTree.find(n => n.key.startsWith(latest + '|')) ?? this.sourceTree[0];
+    const build = (n: PmaHistoryRowView): ReturnNode => {
+      const id = n.pmaExportRow?.id;
+      const accountValues: Record<string, { BaseTotalRor: number }> = {};
+      for (const p of periodKeys) {
+        accountValues[p] = {BaseTotalRor: (byKey.get(`${p}|${id}`)?.pmaExportRow?.accountValues as any)?.BaseTotalRor};
+      }
+      return {name: n.name, pmaExportRow: {id, accountValues}, children: (n.children ?? []).map(build)};
+    };
+    this.chartTree = shape ? [build(shape)] : [];
+    this.chartPeriods = this.periodLabels(periodKeys, rowsMap);
+    this.chartPeriod = latest ?? null;
+    this.selectRowById(shape?.pmaExportRow?.id, latest);
+  }
+
+  /**
+   * Each period is labelled with its start and end date, taken from its rows; on the axis they are
+   * stacked, start over end. A period whose rows carry no dates is shown by its key.
+   */
+  private periodLabels(keys: string[], rowsMap: Map<string, PmaHistoryRow[]>): ChartPeriod[] {
+    const dates = keys.map(key => {
+      const row = (rowsMap.get(key) ?? []).find(r => r.startDate && r.endDate);
+      return row ? {start: String(row.startDate), end: String(row.endDate)} : null;
+    });
+    // Leave the year off the axis when every date is in the same year; the tooltip always has it
+    const years = new Set([].concat(...dates.filter(d => d).map(d => [d.start.slice(0, 4), d.end.slice(0, 4)])));
+    const axisFormat = years.size <= 1 ? 'MMM d' : 'MM/dd/yy';
+    const fmt = (d: string, f: string) => formatDate(d, f, this.locale);
+    return keys.map((key, i) => {
+      const d = dates[i];
+      return d
+        ? {
+          key,
+          label: `${fmt(d.start, 'mediumDate')} – ${fmt(d.end, 'mediumDate')}`,
+          axisLines: [fmt(d.start, axisFormat), fmt(d.end, axisFormat)]
+        }
+        : {key, label: key};
+    });
   }
 
   toggle(node: ExampleFlatNode) {

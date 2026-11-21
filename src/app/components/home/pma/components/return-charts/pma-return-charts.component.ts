@@ -13,9 +13,16 @@ import {formatNumber} from '@angular/common';
 export interface ChartPeriod {
   key: string;
   label: string;
+  /** Axis label; defaults to the key */
+  short?: string;
+  /** Axis label on several lines (e.g. start and end date); takes precedence over short */
+  axisLines?: string[];
 }
 
-/** A row of the PMA Export tree, as far as the charts need it */
+/**
+ * A row of the report tree, as far as the charts need it: its return for each
+ * period is accountValues[periodKey].BaseTotalRor.
+ */
 export interface ReturnNode {
   name: string;
   pmaExportRow?: { id?: number; accountValues?: any };
@@ -25,6 +32,9 @@ export interface ReturnNode {
 interface Column {
   key: string;
   label: string;
+  /** Axis label, one entry per line */
+  lines: string[];
+  showPeriod: boolean;
   value: number | null;
   display: string;
   bandX: number;
@@ -57,6 +67,9 @@ const MIN_WIDTH = 260;
 const MAX_WIDTH = 720;
 const BAR_MAX = 24;       // mark spec: bars never thicker than 24px
 const RADIUS = 4;         // rounded data end, square at the baseline
+const AXIS_LINE = 12;     // height of one line of period label
+const PERIOD_PLOT_HEIGHT = 214;
+const PERIOD_BOTTOM = 42; // value label under a negative column + one line of period label
 
 /**
  * Two small SVG charts beside the PMA Export table:
@@ -79,14 +92,17 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() periods: ChartPeriod[] = [];
   /** Period shown in the segment chart */
   @Input() period: string;
+  /** Number format of the returns (DecimalPipe digits info) */
+  @Input() valueFormat = '.3-3';
   @Output() periodChange = new EventEmitter<string>();
 
   width = 360;
 
   // Chart 1: returns by period
-  readonly periodHeight = 214;
+  // grows by one line for each extra line of period label, so the plot keeps its height
+  periodHeight = PERIOD_PLOT_HEIGHT;
   // bottom: room for a value label under a negative column, then the period labels
-  private readonly m = {top: 18, right: 8, bottom: 42, left: 44};
+  private readonly m = {top: 18, right: 8, bottom: PERIOD_BOTTOM, left: 44};
   columns: Column[] = [];
   ticks: Tick[] = [];
   zeroY = 0;
@@ -177,10 +193,15 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private format(v: number | null): string {
-    return v === null ? 'No value' : formatNumber(v, this.locale, '.3-3');
+    return v === null ? 'No value' : formatNumber(v, this.locale, this.valueFormat);
   }
 
   private buildPeriodChart() {
+    const lines = this.periods.map(p => p.axisLines?.length ? p.axisLines : [p.short ?? p.key]);
+    const extraLines = Math.max(0, ...lines.map(l => l.length - 1));
+    this.periodHeight = PERIOD_PLOT_HEIGHT + extraLines * AXIS_LINE;
+    this.m.bottom = PERIOD_BOTTOM + extraLines * AXIS_LINE;
+
     const values = this.periods.map(p => this.value(this.row, p.key));
     const present = values.filter((v): v is number => v !== null);
     const {lo, hi, step} = niceDomain(Math.min(0, ...present), Math.max(0, ...present));
@@ -202,6 +223,10 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
     // Label only the extremes; the axis, tooltip and table carry the rest
     const max = present.length ? Math.max(...present) : null;
     const min = present.length ? Math.min(...present) : null;
+    // Many periods: label every n-th one, counting back from the latest
+    const labelWidth = Math.max(...[].concat(...lines).map((t: string) => t.length)) * 6 + 8;
+    const every = Math.max(1, Math.ceil(labelWidth / band));
+    const last = this.periods.length - 1;
 
     this.columns = this.periods.map((p, i) => {
       const v = values[i];
@@ -212,6 +237,8 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
       return {
         key: p.key,
         label: p.label,
+        lines: lines[i],
+        showPeriod: (last - i) % every === 0,
         value: v,
         display: this.format(v),
         bandX,
@@ -318,4 +345,19 @@ function horizontalBar(x0: number, x1: number, y: number, h: number): string {
   const dir = x1 > x0 ? 1 : -1; // 1: grows right
   return `M${x0},${y} L${x1 - dir * r},${y} Q${x1},${y} ${x1},${y + r} L${x1},${y + h - r} ` +
     `Q${x1},${y + h} ${x1 - dir * r},${y + h} L${x0},${y + h} Z`;
+}
+
+/** Finds a row by id in a report tree, with its parent (null for a top-level row). */
+export function findWithParent<T extends ReturnNode>(nodes: T[], id: number, parent: T | null = null)
+  : { node: T; parent: T | null } | null {
+  for (const node of nodes ?? []) {
+    if (node.pmaExportRow?.id === id) {
+      return {node, parent};
+    }
+    const found = findWithParent((node.children ?? []) as T[], id, node);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
 }

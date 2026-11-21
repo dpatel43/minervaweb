@@ -34,8 +34,11 @@
       <path *ngIf="c.path" [attr.d]="c.path" [class.negative]="c.negative" class="bar"></path>
       <text *ngIf="c.showLabel" [attr.x]="c.bandX + c.bandWidth / 2" [attr.y]="c.labelY" class="value"
             text-anchor="middle">{{ c.display }}</text>
-      <text [attr.x]="c.bandX + c.bandWidth / 2" [attr.y]="periodHeight - 12" class="period"
-            text-anchor="middle">{{ c.key }}</text>
+      <ng-container *ngIf="c.showPeriod">
+        <text *ngFor="let line of c.lines; let li = index" [attr.x]="c.bandX + c.bandWidth / 2"
+              [attr.y]="periodHeight - 12 - (c.lines.length - 1 - li) * 12" class="period"
+              text-anchor="middle">{{ line }}</text>
+      </ng-container>
       <rect *ngIf="c.key === period" [attr.x]="c.bandX + c.bandWidth / 2 - 10" [attr.y]="periodHeight - 6"
             class="period-marker" height="2" width="20"></rect>
     </g>
