@@ -5,21 +5,27 @@
   ~  */
   -->
 
-<mat-card>
-  <div>
-      <label for="begin">Begin</label>
-      <mat-checkbox [checked]="field.fieldProperties['BEGIN'] === 'Y'"
-                    (change)="updateBegin($event.checked)">
-      </mat-checkbox>
-
-      <label for="domain">Domain</label>
-      <app-minerva-cache-select [cacheGroup]="'DOMAIN'" (ngModelChange)="onDomainChange($event)"
-                                [(ngModel)]="field.fieldProperties['DOMAIN']"></app-minerva-cache-select>
-
-    <label for="domainProperty">Domain Property</label>
-      <app-minerva-cache-select [cacheGroup]="selectedDomain"
-                                [(ngModel)]="field.fieldProperties['DOMAIN_PROP']"></app-minerva-cache-select>
-
+<div class="card">
+  <div class="card-header">Time settings</div>
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-6 col-md-4">
+        <label class="form-label" for="domain">Domain</label>
+        <app-minerva-cache-select (ngModelChange)="onDomainChange($event)" [(ngModel)]="field.fieldProperties['DOMAIN']"
+                                  [cacheGroup]="'DOMAIN'" inputId="domain"></app-minerva-cache-select>
+      </div>
+      <div class="col-6 col-md-4">
+        <label class="form-label" for="domainProperty">Domain property</label>
+        <app-minerva-cache-select [(ngModel)]="field.fieldProperties['DOMAIN_PROP']" [cacheGroup]="selectedDomain"
+                                  inputId="domainProperty"></app-minerva-cache-select>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="form-check form-switch mb-1">
+          <input (change)="updateBegin($any($event.target).checked)" [checked]="field.fieldProperties['BEGIN'] === 'Y'"
+                 class="form-check-input" id="begin" role="switch" type="checkbox">
+          <label class="form-check-label" for="begin">Begin</label>
+        </div>
+      </div>
+    </div>
   </div>
-</mat-card>
-
+</div>

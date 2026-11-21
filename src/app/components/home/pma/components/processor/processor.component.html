@@ -1,67 +1,65 @@
-<mat-card>
-  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-    <mat-card-content>
+<div class="report-page">
+  <div class="page-header">
+    <h1>Processor</h1>
+  </div>
 
-      <div class="form-row">
-        <!--<div class="form-group col-md-3">
-         <mat-form-field appearance="outline">
-           <input matInput class="form-control" formControlName="account" placeholder="Account">
-           <mat-error *ngIf="userForm.hasError('email')"></mat-error>
-          </mat-form-field>
-        </div>-->
-
-        <div class="form-group col-md-3">
-          <label for="account">Account</label>
-          <app-minerva-auto-complete id="account" name="account" formControlName="account"
-                                     [cacheName]="'accountCache'" required>
+  <form (ngSubmit)="onSubmit()" [formGroup]="userForm" class="card filter-bar processor-card">
+    <div class="card-header">Run performance calculation</div>
+    <div class="card-body">
+      <div class="row g-2 align-items-start">
+        <div class="col-auto filter-field">
+          <label class="form-label" for="account">Account</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" inputId="account"
+                                     placeholder="Search account" required>
           </app-minerva-auto-complete>
         </div>
-
-        <div class="form-group col-md-3" formGroupName="range">
-          <mat-form-field appearance="outline">
-            <mat-label>Enter a date range</mat-label>
-            <mat-date-range-input [rangePicker]="picker">
-              <input matStartDate formControlName="start" placeholder="Start date">
-              <input matEndDate formControlName="end" placeholder="End date">
-            </mat-date-range-input>
-            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-date-range-picker #picker></mat-date-range-picker>
-          </mat-form-field>
+        <ng-container formGroupName="range">
+          <div class="col-auto filter-field-sm">
+            <label class="form-label" for="start">Start date</label>
+            <div class="input-group flex-nowrap date-input">
+              <input [class.is-invalid]="rangeInvalid" [matDatepicker]="startPicker" class="form-control"
+                     formControlName="start" id="start" placeholder="MM/DD/YYYY">
+              <mat-datepicker-toggle [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+            </div>
+          </div>
+          <div class="col-auto filter-field-sm">
+            <label class="form-label" for="end">End date</label>
+            <div class="input-group flex-nowrap date-input has-validation">
+              <input [class.is-invalid]="rangeInvalid" [matDatepicker]="endPicker" [min]="userForm.value.range?.start"
+                     class="form-control" formControlName="end" id="end" placeholder="MM/DD/YYYY">
+              <mat-datepicker-toggle [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+            </div>
+          </div>
+        </ng-container>
+        <div class="col-auto">
+          <label aria-hidden="true" class="form-label invisible">Run</label>
+          <div>
+            <button [disabled]="!canRun || running" class="btn btn-primary" type="submit">
+              <span *ngIf="running" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
+              <i *ngIf="!running" class="bi bi-play-fill me-1"></i>{{ running ? 'Running...' : 'Run processor' }}
+            </button>
+          </div>
         </div>
-
-
       </div>
-
-
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-raised-button type="submit" class="btn btn-primary btn-sm mr-2">Run Processor</button>
-    </mat-card-actions>
+      <div *ngIf="rangeInvalid" class="text-danger mt-1">End date must be on or after the start date.</div>
+    </div>
   </form>
-</mat-card>
-<!--
-<mat-card>
-  <mat-card-content>
-    <div class="form-row">
-      <div class="form-group col-md-3">
-        <input id="account" name="account" readonly placeholder="Account"
-               [(ngModel)]="calculationRequest.accountId">
-      </div>
 
-      <div class="form-group col-md-3">
-        <mat-form-field appearance="outline">
-          <mat-label>Enter a date range</mat-label>
-          <mat-date-range-input [rangePicker]="picker">
-            <input matStartDate placeholder="Start date">
-            <input matEndDate placeholder="End date">
-          </mat-date-range-input>
-          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-          <mat-date-range-picker #picker></mat-date-range-picker>
-        </mat-form-field>
+  <div *ngIf="lastRun" [class.alert-danger]="lastRun.error" [class.alert-success]="!lastRun.error"
+       class="alert d-flex align-items-start gap-2 processor-result" role="status">
+    <i [class.bi-check-circle-fill]="!lastRun.error" [class.bi-exclamation-triangle-fill]="lastRun.error" class="bi"></i>
+    <div>
+      <div class="fw-medium">
+        {{ lastRun.error ? 'Processor run failed' : 'Processor run completed' }}
       </div>
+      <div>
+        {{ lastRun.account }}, {{ lastRun.start | date:'MM/dd/yyyy' }} to {{ lastRun.end | date:'MM/dd/yyyy' }}
+        <span class="text-body-secondary">at {{ lastRun.finishedAt | date:'HH:mm:ss' }}</span>
+      </div>
+      <div *ngIf="lastRun.error" class="mt-1">{{ lastRun.error }}</div>
     </div>
-    <div class="form-row">
-
-    </div>
-  </mat-card-content>
-</mat-card> -->
+    <button (click)="lastRun = null" aria-label="Dismiss" class="btn-close ms-auto" type="button"></button>
+  </div>
+</div>

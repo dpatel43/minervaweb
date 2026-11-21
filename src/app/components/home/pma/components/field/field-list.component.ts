@@ -35,9 +35,9 @@ export class FieldListComponent implements OnInit, AfterViewInit {
 
   // Define your column definitions
   colDefs: ColDef[] = [
-    {field: 'fieldId', headerName: 'Id'},
-    {field: 'name', headerName: 'Name'},
-    {field: 'fieldType', headerName: 'Type'},
+    {field: 'fieldId', headerName: 'ID', type: 'numericColumn', flex: 0, width: 90},
+    {field: 'name', headerName: 'Name', flex: 2},
+    {field: 'fieldType', headerName: 'Type', flex: 1},
   ]
 
   defaultColDef = {

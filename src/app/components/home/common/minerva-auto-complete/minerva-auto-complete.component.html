@@ -1,21 +1,11 @@
-<div>
-
-  <mat-form-field appearance="outline">
-    <input matInput placeholder="Search" aria-label="State" [matAutocomplete]="auto" [formControl]="searchResultCtrl">
-    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSelect($event.option.value)" [displayWith]="displayFn" >
-      <mat-option *ngIf="isLoading" class="is-loading">Loading...</mat-option>
-      <ng-container *ngIf="!isLoading">
-        <mat-option *ngFor="let cacheResult of filteredResults" [value]="cacheResult" sele>
-          {{cacheResult.displayValue}}
-        </mat-option>
-      </ng-container>
-    </mat-autocomplete>
-  </mat-form-field>
-
-  <br>
-
-  <ng-container *ngIf="errorMsg">
-    {{errorMsg}}
+<input [attr.id]="inputId" [formControl]="searchResultCtrl" [matAutocomplete]="auto" [placeholder]="placeholder"
+       autocomplete="off" class="form-control" type="text">
+<mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSelect($event.option.value)" [displayWith]="displayFn">
+  <mat-option *ngIf="isLoading" class="is-loading" disabled>Loading...</mat-option>
+  <ng-container *ngIf="!isLoading">
+    <mat-option *ngFor="let cacheResult of filteredResults" [value]="cacheResult">
+      {{ cacheResult.displayValue }}
+    </mat-option>
   </ng-container>
-
-</div>
+</mat-autocomplete>
+<div *ngIf="errorMsg" class="text-danger mt-1">{{ errorMsg }}</div>

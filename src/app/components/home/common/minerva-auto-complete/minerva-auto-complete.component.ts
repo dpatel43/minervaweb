@@ -54,6 +54,11 @@ export class MinervaAutoCompleteComponent<T> implements OnInit, ControlValueAcce
 
   @Input() colors: CacheResult<T>[] = [];
 
+  /** id for the inner input, so a <label for=...> can target it */
+  @Input() inputId: string;
+
+  @Input() placeholder = 'Search';
+
   private onChange: (value: CacheResult<T>) => void;
 
   writeValue(value: CacheResult<T>) {

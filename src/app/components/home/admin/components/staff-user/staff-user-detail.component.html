@@ -1,47 +1,63 @@
-<div class="card p-2">
-  <form #form="ngForm"  (ngSubmit)="save()">
-    <div class="form-row">
-      <div class="form-group col-md-2">
-        <label for="staffUserId">ID</label>
-        <input class="form-control" [(ngModel)]="staffUser.staffUserId" id="staffUserId" name="staffUserId" placeholder="ID">
+<form #form="ngForm" (ngSubmit)="save()" class="detail-page">
+  <div class="card">
+    <div class="card-header">Personal details</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="staffUserId">ID</label>
+          <input [value]="staffUser.staffUserId || 'New'" class="form-control readonly-value" id="staffUserId" readonly
+                 tabindex="-1">
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="firstName">First name <span class="text-danger">*</span></label>
+          <input #firstName="ngModel" [(ngModel)]="staffUser.firstName"
+                 [class.is-invalid]="firstName.invalid && firstName.touched" class="form-control" id="firstName"
+                 name="firstName" required>
+          <div class="invalid-feedback">First name is required</div>
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="middleName">Middle name <span class="text-danger">*</span></label>
+          <input #middleName="ngModel" [(ngModel)]="staffUser.middleName"
+                 [class.is-invalid]="middleName.invalid && middleName.touched" class="form-control" id="middleName"
+                 name="middleName" required>
+          <div class="invalid-feedback">Middle name is required</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="lastName">Last name <span class="text-danger">*</span></label>
+          <input #lastName="ngModel" [(ngModel)]="staffUser.lastName"
+                 [class.is-invalid]="lastName.invalid && lastName.touched" class="form-control" id="lastName"
+                 name="lastName" required>
+          <div class="invalid-feedback">Last name is required</div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="form-row">
-      <div class="form-group col-md-2">
-        <label for="firstName">First Name</label>
-        <input class="form-control" id="firstName" name="firstName" [(ngModel)]="staffUser.firstName" required  placeholder="First Name" />
-      </div>
-    <div class="form-group col-md-2">
-        <label for="middleName">Middle Name</label>
-        <input class="form-control" id="middleName" name="middleName" [(ngModel)]="staffUser.middleName" required placeholder="Middle Name" />
-      </div>
-      <div class="form-group col-md-2">
-        <label for="lastName">Last Name</label>
-        <input class="form-control" id="lastName" name="lastName" [(ngModel)]="staffUser.lastName" required  placeholder="Last Name" />
-      </div>
-    </div>
-
-    <div class="form-row">
-     <div class="form-group col-md-2">
-       <label for="username">Username</label>
-       <input class="form-control" id="username" name="username" [(ngModel)]="staffUser.user.username" required  placeholder="Username" />
-     </div>
-     <div class="form-group col-md-2">
-       <label for="password">Password</label>
-       <input type="password" class="form-control" id="password" name="password" [(ngModel)]="staffUser.user.password" required placeholder="Password" />
-     </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group col-md-2">
-        <label for="aclGroup">ACL Group</label>
-        <app-minerva-auto-complete id="aclGroup" name="aclGroup" [(ngModel)]="staffUser.aclGroup" [cacheName]="aclGroupCacheName" required>
-        </app-minerva-auto-complete>
+  <div class="card">
+    <div class="card-header">Login and access</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="username">Username <span class="text-danger">*</span></label>
+          <input #username="ngModel" [(ngModel)]="staffUser.user.username"
+                 [class.is-invalid]="username.invalid && username.touched" autocomplete="off" class="form-control"
+                 id="username" name="username" required>
+          <div class="invalid-feedback">Username is required</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+          <input #password="ngModel" [(ngModel)]="staffUser.user.password"
+                 [class.is-invalid]="password.invalid && password.touched" autocomplete="new-password"
+                 class="form-control" id="password" name="password" required type="password">
+          <div class="invalid-feedback">Password is required</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="aclGroup">ACL group <span class="text-danger">*</span></label>
+          <app-minerva-auto-complete [(ngModel)]="staffUser.aclGroup" [cacheName]="aclGroupCacheName" inputId="aclGroup"
+                                     name="aclGroup" placeholder="Search ACL group" required>
+          </app-minerva-auto-complete>
+        </div>
       </div>
     </div>
-    <button class="btn btn-primary btn-sm mr-2" [disabled]="!form.dirty" type="submit">
-      Save<span class="glyphicon glyphicon-floppy-save"></span>
-    </button>
-  </form>
-</div>
+  </div>
+</form>

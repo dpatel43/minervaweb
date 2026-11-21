@@ -5,115 +5,812 @@
  *
  */
 
-/* Import core layout functionality */
 @import '@ag-grid-community/styles/ag-grid.css';
 @import '@ag-grid-community/styles/ag-theme-balham.css';
 
-/* You can add global styles to this file, and also import other style files */
-* {
-  font-size: 12px;
+/* ==========================================================================
+   1. Design tokens
+   One base size (11px) for all text and numbers. Bootstrap sizes are rem
+   based, so the root font size drives Bootstrap's type and spacing scale.
+   ========================================================================== */
+:root {
+  --app-font-size: 11px;
+  --app-line-height: 1.45;
+  --app-font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --app-navy: #1f3a5f;
+  --app-navy-dark: #172c48;
+  --app-navy-rgb: 31, 58, 95;
+  --app-surface: #ffffff;
+  --app-page-bg: #f3f5f8;
+  --app-border: #d8dee6;
+  --app-header-bg: #eef1f5;
+  --app-muted: #5f6b7a;
+  --app-positive: #1b7f3b;
+  --app-negative: #c0392b;
+
+  --app-control-height: 26px;
+
+  /* Bootstrap theme */
+  --bs-body-font-family: var(--app-font-family);
+  --bs-body-font-size: var(--app-font-size);
+  --bs-body-line-height: var(--app-line-height);
+  --bs-body-color: #1e2733;
+  /* Bootstrap uses body-bg for cards, inputs and dropdowns; the page itself
+     gets --app-page-bg via the body rule below */
+  --bs-body-bg: var(--app-surface);
+  --bs-border-color: var(--app-border);
+  --bs-secondary-color: var(--app-muted);
+  --bs-primary: var(--app-navy);
+  --bs-primary-rgb: var(--app-navy-rgb);
+  --bs-link-color: var(--app-navy);
+  --bs-link-color-rgb: var(--app-navy-rgb);
+  --bs-link-hover-color: var(--app-navy-dark);
+  --bs-border-radius: 3px;
+  --bs-border-radius-sm: 2px;
+  --bs-border-radius-lg: 4px;
+  --bs-focus-ring-color: rgba(var(--app-navy-rgb), .25);
+
+  /* Angular Material typography and density, aligned to the same scale */
+  --mat-form-field-container-text-size: var(--app-font-size);
+  --mat-form-field-container-text-line-height: 16px;
+  --mat-form-field-filled-label-text-size: var(--app-font-size);
+  --mat-form-field-outlined-label-text-size: var(--app-font-size);
+  --mat-form-field-subscript-text-size: 10px;
+  --mat-form-field-container-height: 36px;
+  --mat-form-field-container-vertical-padding: 8px;
+  --mat-form-field-filled-with-label-container-padding-top: 14px;
+  --mat-form-field-filled-with-label-container-padding-bottom: 2px;
+  --mat-select-trigger-text-size: var(--app-font-size);
+  --mat-option-label-text-size: var(--app-font-size);
+  --mat-option-label-text-line-height: 16px;
+  --mat-menu-item-label-text-size: var(--app-font-size);
+  --mat-table-header-headline-size: var(--app-font-size);
+  --mat-table-row-item-label-text-size: var(--app-font-size);
+  --mat-table-footer-supporting-text-size: var(--app-font-size);
+  --mat-table-header-container-height: 30px;
+  --mat-table-row-item-container-height: 26px;
+  --mat-table-footer-container-height: 26px;
+  --mat-paginator-container-text-size: var(--app-font-size);
+  --mat-paginator-select-trigger-text-size: var(--app-font-size);
+  --mat-paginator-container-size: 36px;
+  --mat-paginator-form-field-container-height: 28px;
+  --mat-paginator-form-field-container-vertical-padding: 4px;
+  --mat-button-filled-label-text-size: var(--app-font-size);
+  --mat-button-outlined-label-text-size: var(--app-font-size);
+  --mat-button-protected-label-text-size: var(--app-font-size);
+  --mat-button-text-label-text-size: var(--app-font-size);
+  --mat-button-filled-container-height: var(--app-control-height);
+  --mat-button-outlined-container-height: var(--app-control-height);
+  --mat-button-protected-container-height: var(--app-control-height);
+  --mat-button-text-container-height: var(--app-control-height);
+  --mat-icon-button-state-layer-size: 28px;
+  --mat-icon-button-icon-size: 18px;
+  --mat-checkbox-label-text-size: var(--app-font-size);
+  --mat-radio-label-text-size: var(--app-font-size);
+  --mat-chip-label-text-size: var(--app-font-size);
+  --mat-chip-container-height: 22px;
+  --mat-card-title-text-size: 13px;
+  --mat-card-subtitle-text-size: var(--app-font-size);
+  --mat-datepicker-calendar-text-size: var(--app-font-size);
+  --mat-datepicker-calendar-body-label-text-size: var(--app-font-size);
+  --mat-datepicker-calendar-header-text-size: var(--app-font-size);
+  --mat-datepicker-calendar-period-button-text-size: var(--app-font-size);
+  --mat-tab-label-text-size: var(--app-font-size);
+  --mat-tab-container-height: 32px;
+  --mat-toolbar-title-text-size: 13px;
+  --mat-toolbar-standard-height: 40px;
+  --mat-tooltip-supporting-text-size: var(--app-font-size);
+  --mat-snack-bar-supporting-text-size: var(--app-font-size);
+  --mat-list-list-item-label-text-size: var(--app-font-size);
+  --mat-expansion-header-text-size: var(--app-font-size);
+  --mat-expansion-container-text-size: var(--app-font-size);
 }
 
-/* =========================
-   Global Reset & Box Model
-   ========================= */
+/* ==========================================================================
+   2. Base
+   ========================================================================== */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* =========================
-   Root Height Fix
-   ========================= */
+html {
+  font-size: var(--app-font-size);
+}
+
 html,
 body {
   height: 100%;
   margin: 0;
 }
 
-/* Angular root */
+body {
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size);
+  line-height: var(--app-line-height);
+  background: var(--app-page-bg);
+  color: var(--bs-body-color);
+  /* Fixed-width digits so figures line up in columns */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Keep everything at the base size, including Bootstrap's "small" variants */
+small, .small,
+.form-control, .form-select, .form-control-sm, .form-select-sm,
+.input-group-text, .input-group-sm > *,
+.dropdown-item, .nav-link, .badge, .table,
+label, .form-label, .col-form-label, .col-form-label-sm {
+  font-size: var(--app-font-size);
+}
+
+h1, .h1 { font-size: 18px; }
+h2, .h2 { font-size: 16px; }
+h3, .h3 { font-size: 14px; }
+h4, .h4, h5, .h5, h6, .h6 { font-size: 12px; }
+h1, h2, h3, h4, h5, h6 { font-weight: 500; margin-bottom: 6px; }
+
+/* ==========================================================================
+   3. Layout shell
+   ========================================================================== */
 app-root {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-/* =========================
-   Angular Material Fixes
-   ========================= */
+.main-content {
+  flex: 1 1 auto;
+  min-height: 0; /* required for ag-grid to size */
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+}
 
-/* Prevent toolbar height issues */
+/* Feature shells (e.g. PMA) nest a second .main-content; don't double the padding */
+.main-content .main-content {
+  padding: 0;
+}
+
+.scrollable {
+  overflow: auto;
+}
+
+/* Page header: <div class="page-header"><h1>Title</h1><div>actions</div></div> */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   4. Bootstrap component tuning
+   ========================================================================== */
+
+/* Navbar */
+.app-navbar {
+  --bs-navbar-padding-y: 0;
+  --bs-navbar-brand-font-size: 13px;
+  --bs-navbar-nav-link-padding-x: 10px;
+  --bs-navbar-color: rgba(255, 255, 255, .8);
+  --bs-navbar-hover-color: #fff;
+  --bs-navbar-active-color: #fff;
+  background: var(--app-navy);
+  min-height: 38px;
+  flex: 0 0 auto;
+}
+
+.app-navbar .navbar-brand {
+  font-weight: 500;
+  letter-spacing: .3px;
+  color: #fff;
+}
+
+.app-navbar .nav-link {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+.dropdown-menu {
+  --bs-dropdown-font-size: var(--app-font-size);
+  --bs-dropdown-item-padding-y: 4px;
+  --bs-dropdown-item-padding-x: 12px;
+  --bs-dropdown-padding-y: 4px;
+  --bs-dropdown-link-active-bg: var(--app-navy);
+  --bs-dropdown-border-color: var(--app-border);
+  --bs-dropdown-box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+  box-shadow: var(--bs-dropdown-box-shadow);
+}
+
+/* Buttons: one compact size everywhere */
+.btn {
+  --bs-btn-font-size: var(--app-font-size);
+  --bs-btn-padding-y: 4px;
+  --bs-btn-padding-x: 10px;
+  --bs-btn-line-height: 16px;
+}
+
+.btn-sm {
+  --bs-btn-font-size: var(--app-font-size);
+  --bs-btn-padding-y: 2px;
+  --bs-btn-padding-x: 8px;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--app-navy);
+  --bs-btn-border-color: var(--app-navy);
+  --bs-btn-hover-bg: var(--app-navy-dark);
+  --bs-btn-hover-border-color: var(--app-navy-dark);
+  --bs-btn-active-bg: var(--app-navy-dark);
+  --bs-btn-active-border-color: var(--app-navy-dark);
+  --bs-btn-disabled-bg: var(--app-navy);
+  --bs-btn-disabled-border-color: var(--app-navy);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--app-navy);
+  --bs-btn-border-color: var(--app-navy);
+  --bs-btn-hover-bg: var(--app-navy);
+  --bs-btn-hover-border-color: var(--app-navy);
+  --bs-btn-active-bg: var(--app-navy-dark);
+  --bs-btn-active-border-color: var(--app-navy-dark);
+}
+
+/* Form controls */
+.form-control,
+.form-select {
+  min-height: var(--app-control-height);
+  padding: 3px 8px;
+  line-height: 18px;
+}
+
+.form-select {
+  padding-right: 24px;
+  background-position: right 6px center;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(var(--app-navy-rgb), .6);
+  box-shadow: 0 0 0 2px rgba(var(--app-navy-rgb), .15);
+}
+
+.form-label,
+.col-form-label {
+  margin-bottom: 2px;
+  color: var(--app-muted);
+  font-weight: 500;
+}
+
+/* Checkboxes, radios and switches: app colour instead of Bootstrap's default blue */
+.form-check-input:checked {
+  background-color: var(--app-navy);
+  border-color: var(--app-navy);
+}
+
+.form-check-input:focus {
+  border-color: rgba(var(--app-navy-rgb), .6);
+  box-shadow: 0 0 0 2px rgba(var(--app-navy-rgb), .15);
+}
+
+.form-switch .form-check-input:focus:not(:checked) {
+  --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%2831, 58, 95, 0.6%29'/%3e%3c/svg%3e");
+}
+
+/* Cards */
+.card {
+  --bs-card-border-color: var(--app-border);
+  --bs-card-cap-bg: var(--app-header-bg);
+  --bs-card-cap-padding-y: 6px;
+  --bs-card-cap-padding-x: 10px;
+  --bs-card-spacer-y: 10px;
+  --bs-card-spacer-x: 10px;
+  --bs-card-title-spacer-y: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+
+.card-header {
+  font-weight: 500;
+}
+
+/* Tables */
+.table {
+  --bs-table-cell-padding-x: 8px;
+  --bs-table-cell-padding-y: 4px;
+  --bs-table-striped-bg: rgba(var(--app-navy-rgb), .03);
+  --bs-table-hover-bg: rgba(var(--app-navy-rgb), .06);
+  margin-bottom: 0;
+}
+
+.table-sm {
+  --bs-table-cell-padding-x: 6px;
+  --bs-table-cell-padding-y: 2px;
+}
+
+.table > thead th {
+  background: var(--app-header-bg);
+  color: var(--app-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   5. Financial helpers
+   ========================================================================== */
+
+/* Use on any numeric cell or value: right aligned, fixed-width digits */
+.num,
+td.num,
+th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.positive { color: var(--app-positive); }
+.negative { color: var(--app-negative); }
+
+/* ==========================================================================
+   5b. Report screens: filter bar + results table
+   ========================================================================== */
+
+/* Report page: filter card on top, results card fills the rest */
+.report-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.filter-bar .form-label {
+  white-space: nowrap;
+}
+
+.filter-bar .filter-field {
+  width: 200px;
+}
+
+.filter-bar .filter-field-sm {
+  width: 130px;
+}
+
+/* Bootstrap input + Material datepicker toggle */
+.date-input .mat-datepicker-toggle {
+  display: flex;
+  align-items: center;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-left: 0;
+  border-radius: 0 var(--bs-border-radius) var(--bs-border-radius) 0;
+  background: var(--app-header-bg);
+  --mat-icon-button-state-layer-size: 24px;
+  --mat-icon-button-icon-size: 16px;
+}
+
+.date-input .mat-datepicker-toggle .mat-mdc-icon-button {
+  width: 26px;
+  height: calc(var(--app-control-height) - 2px);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-input .mat-datepicker-toggle .mat-mdc-button-touch-target {
+  display: none;
+}
+
+.date-input .mat-datepicker-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Results card: fills remaining height, scrolls in both directions */
+.results-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.results-card .card-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.results-card .mat-mdc-table {
+  border: 0;
+}
+
+.results-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  font-weight: normal;
+}
+
+.table-filter {
+  width: 240px;
+}
+
+.table-filter .input-group-text {
+  background: var(--app-surface);
+  color: var(--app-muted);
+  padding: 0 8px;
+}
+
+.table-filter .form-control {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.table-filter .form-control::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* Sortable headers */
+.mat-sort-header-container {
+  letter-spacing: normal;
+}
+
+th.num .mat-sort-header-container {
+  justify-content: flex-end;
+}
+
+.mat-sort-header-arrow {
+  color: var(--app-navy);
+}
+
+/* Results card that hugs its content (e.g. a grid sized by appFitGridHeight)
+   instead of filling the page; still shrinks and scrolls when content is taller */
+.results-card.fit-content {
+  flex: 0 1 auto;
+}
+
+.results-card.fit-content .card-body {
+  overflow: hidden;
+}
+
+/* AG Grid inside a results card: the card already draws the border */
+.results-card .ag-root-wrapper {
+  border: 0;
+}
+
+.results-card .ag-paging-panel {
+  border-top-color: var(--app-border);
+}
+
+/* Tables whose rows open a record */
+.mat-mdc-table.clickable-rows .mat-mdc-row:not(:has(.results-empty)) {
+  cursor: pointer;
+}
+
+.mat-mdc-table.clickable-rows .mat-mdc-row:focus-visible {
+  outline: 2px solid rgba(var(--app-navy-rgb), .5);
+  outline-offset: -2px;
+}
+
+/* Read-only value shown in a form (e.g. a record ID) */
+.form-control.readonly-value,
+#fieldId {
+  background: var(--app-header-bg);
+  color: var(--app-muted);
+}
+
+/* Breadcrumb used as a page title: "Fields > Field name" */
+.page-breadcrumb {
+  --bs-breadcrumb-margin-bottom: 0;
+  --bs-breadcrumb-divider-color: var(--app-muted);
+  --bs-breadcrumb-item-active-color: var(--bs-body-color);
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.page-breadcrumb .breadcrumb-item a {
+  text-decoration: none;
+}
+
+.page-breadcrumb .breadcrumb-item a:hover {
+  text-decoration: underline;
+}
+
+.results-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--app-muted);
+}
+
+/* Group header row above a set of columns, e.g. Portfolio | Benchmark */
+.mat-mdc-header-row.group-header-row {
+  height: 24px;
+}
+
+.mat-mdc-header-cell.group-header {
+  text-align: center;
+  color: var(--bs-body-color);
+  border-left: 1px solid var(--app-border);
+}
+
+.mat-mdc-header-cell.group-start,
+.mat-mdc-cell.group-start {
+  border-left: 1px solid var(--app-border);
+}
+
+/* Grid lines: vertical borders between every column */
+.mat-mdc-table.grid-lines .mat-mdc-header-cell,
+.mat-mdc-table.grid-lines .mat-mdc-cell,
+.mat-mdc-table.grid-lines .mat-mdc-footer-cell {
+  border-right: 1px solid var(--app-border);
+}
+
+/* Resizable table: fixed layout, widths come from <colgroup> (see ColumnResizeDirective) */
+.mat-mdc-table.resizable-table {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.mat-mdc-table.resizable-table .mat-mdc-header-cell,
+.mat-mdc-table.resizable-table .mat-mdc-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resizable-header {
+  position: relative;
+}
+
+.col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.col-resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  bottom: 25%;
+  right: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background-color .1s;
+}
+
+.col-resize-handle:hover::after,
+.col-resize-handle.active::after {
+  top: 0;
+  bottom: 0;
+  background: var(--app-navy);
+}
+
+/* While dragging: keep the resize cursor everywhere and stop text selection */
+body.col-resizing,
+body.col-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* Tree table: indented first column with expand/collapse chevron */
+.tree-cell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.tree-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--app-muted);
+  line-height: 1;
+}
+
+.tree-toggle:hover {
+  color: var(--app-navy);
+}
+
+.tree-toggle.invisible {
+  pointer-events: none;
+}
+
+.mat-mdc-row.tree-parent .mat-mdc-cell {
+  font-weight: 500;
+}
+
+.mat-mdc-row.tree-root {
+  background: #f7f9fb;
+}
+
+/* ==========================================================================
+   6. Angular Material adjustments
+   ========================================================================== */
 .mat-toolbar {
   flex: 0 0 auto;
 }
 
-/* Allow content to grow correctly */
 .mat-sidenav-container,
 .mat-sidenav-content,
 .mat-drawer-container {
   height: 100%;
 }
 
-/* Remove unexpected scrollbars */
 .mat-sidenav-content {
   overflow: hidden;
 }
 
-/* =========================
-   Main Content Layout
-   ========================= */
-
-.main-content {
-  flex: 1 1 auto;
-  min-height: 0; /* CRITICAL for ag-grid */
-  padding: 5px;
-  display: flex;
-  flex-direction: column;
+/* mat-table: look like a Bootstrap bordered table */
+.mat-mdc-table {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
 }
 
-/* =========================
-   ag-Grid Balham Theme Fixes
-   ========================= */
+.mat-mdc-table.mat-elevation-z8 {
+  box-shadow: none;
+}
 
+.mat-mdc-header-row {
+  background: var(--app-header-bg);
+}
+
+.mat-mdc-header-cell {
+  color: var(--app-muted);
+  font-weight: 500;
+}
+
+.mat-mdc-header-cell,
+.mat-mdc-cell,
+.mat-mdc-footer-cell {
+  padding: 0 8px;
+  border-bottom-color: var(--app-border);
+}
+
+.mat-mdc-row:hover {
+  background: rgba(var(--app-navy-rgb), .04);
+}
+
+.mat-mdc-form-field {
+  font-size: var(--app-font-size);
+}
+
+.mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Dropdown panels (autocomplete, mat-select): compact list that matches a
+   native <select> popup: tight rows, thin border, solid highlight */
+.mat-mdc-autocomplete-panel,
+.mat-mdc-select-panel {
+  --mat-autocomplete-container-shape: 0 0 var(--bs-border-radius) var(--bs-border-radius);
+  --mat-autocomplete-container-elevation-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+  --mat-autocomplete-background-color: var(--app-surface);
+  --mat-option-label-text-color: var(--bs-body-color);
+  --mat-option-label-text-tracking: normal;
+  --mat-option-label-text-font: var(--app-font-family);
+  --mat-option-hover-state-layer-color: var(--app-navy);
+  --mat-option-focus-state-layer-color: var(--app-navy);
+  --mat-option-selected-state-layer-color: rgba(var(--app-navy-rgb), .12);
+  --mat-option-selected-state-label-text-color: var(--bs-body-color);
+  padding: 2px 0 !important;
+  border: 1px solid var(--app-border);
+  outline: 0 !important;
+}
+
+.mat-mdc-autocomplete-panel .mat-mdc-option,
+.mat-mdc-select-panel .mat-mdc-option {
+  min-height: 22px;
+  padding: 2px 8px;
+  font-size: var(--app-font-size);
+  line-height: 18px;
+}
+
+.mat-mdc-autocomplete-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.mat-mdc-autocomplete-panel .mat-mdc-option.mat-mdc-option-active,
+.mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-active {
+  background-color: var(--app-navy);
+  color: #fff;
+}
+
+.mat-mdc-autocomplete-panel .mat-mdc-option:hover .mdc-list-item__primary-text,
+.mat-mdc-autocomplete-panel .mat-mdc-option.mat-mdc-option-active .mdc-list-item__primary-text,
+.mat-mdc-select-panel .mat-mdc-option:hover .mdc-list-item__primary-text,
+.mat-mdc-select-panel .mat-mdc-option.mat-mdc-option-active .mdc-list-item__primary-text {
+  color: #fff;
+}
+
+/* Material's own state layer would tint on top of the solid highlight */
+.mat-mdc-autocomplete-panel .mat-mdc-option .mat-focus-indicator::before,
+.mat-mdc-autocomplete-panel .mat-mdc-option::before,
+.mat-mdc-select-panel .mat-mdc-option::before {
+  display: none;
+}
+
+/* "Loading..." row */
+.mat-mdc-option.is-loading {
+  color: var(--app-muted);
+  font-style: italic;
+}
+
+.mat-mdc-option.is-loading .mdc-list-item__primary-text {
+  color: var(--app-muted);
+}
+
+/* ==========================================================================
+   7. ag-Grid (Balham)
+   ========================================================================== */
 .ag-theme-balham {
+  --ag-font-family: var(--app-font-family);
+  --ag-font-size: var(--app-font-size);
+  --ag-row-height: 24px;
+  --ag-header-height: 28px;
+  --ag-header-background-color: var(--app-header-bg);
+  --ag-header-foreground-color: var(--app-muted);
+  --ag-border-color: var(--app-border);
+  --ag-row-border-color: #e7ebf0;
+  --ag-odd-row-background-color: #fafbfc;
+  --ag-row-hover-color: rgba(var(--app-navy-rgb), .06);
+  --ag-selected-row-background-color: rgba(var(--app-navy-rgb), .12);
+  --ag-range-selection-border-color: var(--app-navy);
+  --ag-balham-active-color: var(--app-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Layout for the grid element only. AG Grid also puts the theme class on its
+   popup containers (e.g. the page size list); giving those flex-grow makes
+   them take space inside the grid and squeezes the rows. */
+ag-grid-angular.ag-theme-balham {
   flex: 1 1 auto;
-  min-height: 0; /* CRITICAL */
+  min-height: 0;
   width: 100%;
 }
 
-/* Prevent row text clipping */
-.ag-cell {
-  line-height: normal;
-}
-
-/* Optional: better header alignment */
-.ag-header-cell-label {
-  justify-content: center;
-}
-
-/* =========================
-   Scroll Behavior
-   ========================= */
-
-body {
-  overflow: hidden;
-}
-
-/* Let only specific areas scroll */
-.scrollable {
-  overflow: auto;
-}
-
-.ag-theme-balham {
-  --ag-font-family: Roboto, "Helvetica Neue", sans-serif;
-  --ag-font-size: 13px;
+.ag-theme-balham .ag-cell,
+.ag-theme-balham .ag-header-cell {
+  border-right: 1px solid #e7ebf0;
 }
 
 .ag-theme-balham .ag-cell {
-  border-right: 1px solid #dcdcdc;
+  line-height: calc(var(--ag-row-height) - 2px);
 }
 
-.ag-theme-balham .ag-header-cell {
-  border-right: 1px solid #dcdcdc;
+.ag-theme-balham .ag-header-cell-label {
+  justify-content: center;
+}
+
+/* Right align numeric columns: set type: 'numericColumn' or cellClass: 'num' */
+.ag-theme-balham .ag-right-aligned-cell,
+.ag-theme-balham .ag-cell.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }

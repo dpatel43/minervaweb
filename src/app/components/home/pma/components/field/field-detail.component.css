@@ -5,28 +5,19 @@
  *
  */
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  align-items: start;
+:host {
+  display: block;
 }
 
-.full-width {
-  width: 100%;
-}
-
-.field-extensions {
-  margin-top: 16px;
+.detail-page {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  max-width: 960px;
 }
 
-mat-card {
-  border-radius: 8px;
-}
-
-mat-card-content {
-  padding: 12px;
+/* Read-only ID looks like a value, not an editable box */
+#fieldId {
+  background: var(--app-header-bg);
+  color: var(--app-muted);
 }

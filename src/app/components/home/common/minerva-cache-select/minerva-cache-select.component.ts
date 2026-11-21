@@ -32,6 +32,9 @@ export class MinervaCacheSelectComponent implements OnInit, ControlValueAccessor
   _cacheResults: CacheResult<string>[];
 
   _cacheGroup: string;
+
+  /** id for the inner select, so a <label for=...> can target it */
+  @Input() inputId: string;
   //Placeholders for the callbacks which are later provided
   //by the Control Value Accessor
   private onTouchedCallback: () => void = noop;

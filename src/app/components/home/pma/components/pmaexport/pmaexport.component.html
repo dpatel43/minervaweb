@@ -5,96 +5,103 @@
   ~  */
   -->
 
-<form [formGroup]="exportForm">
-  <div class="card small">
-    <div class="card-header bg-light">
-      <div class="me-2">
-        <label for="account">Account</label>
-        <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" id="account"
-                                   name="account" required>
-        </app-minerva-auto-complete>
-      </div>
-      <div class="m-2">
-        <label for="profile">Profile</label>
-        <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" id="profile"
-                                   name="profile" required>
-        </app-minerva-auto-complete>
-      </div>
-      <div class="m-2">
-        <mat-form-field>
-          <mat-label>Date</mat-label>
-          <input [matDatepicker]="picker" formControlName="end" matInput>
-          <mat-datepicker-toggle [for]="picker" matIconSuffix></mat-datepicker-toggle>
-          <mat-datepicker #picker></mat-datepicker>
-        </mat-form-field>
-      </div>
-      <button (click)="onSubmit()" class="btn btn-primary btn-sm me-2 rounded-0" type="button">Retrieve</button>
-    </div>
+<div class="report-page">
+  <div class="page-header">
+    <h1>PMA Export</h1>
   </div>
-  <div class="card small">
+
+  <form (ngSubmit)="onSubmit()" [formGroup]="exportForm" class="card filter-bar">
     <div class="card-body">
-      <table [dataSource]="dataSource" class="mat-elevation-z8" mat-table>
+      <div class="row g-2 align-items-end">
+        <div class="col-auto filter-field">
+          <label class="form-label" for="account">Account</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" inputId="account"
+                                     placeholder="Search account" required>
+          </app-minerva-auto-complete>
+        </div>
+        <div class="col-auto filter-field">
+          <label class="form-label" for="profile">Profile</label>
+          <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" inputId="profile"
+                                     placeholder="Search profile" required>
+          </app-minerva-auto-complete>
+        </div>
+        <div class="col-auto filter-field-sm">
+          <label class="form-label" for="end">As of date</label>
+          <div class="input-group flex-nowrap date-input">
+            <input [matDatepicker]="picker" class="form-control" formControlName="end" id="end"
+                   placeholder="MM/DD/YYYY">
+            <mat-datepicker-toggle [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </div>
+        </div>
+        <div class="col-auto">
+          <button [disabled]="!canRetrieve || loading" class="btn btn-primary" type="submit">
+            <span *ngIf="loading" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
+            Retrieve
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card results-card">
+    <div *ngIf="dataSource" class="card-header results-toolbar">
+      <div class="input-group table-filter">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input #filterInput (input)="onFilterChange(filterInput.value)" [value]="filterText" aria-label="Filter rows"
+               class="form-control" placeholder="Filter by name" type="search">
+        <button (click)="clearFilter()" *ngIf="filterText" aria-label="Clear filter" class="btn btn-outline-secondary"
+                type="button"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <span class="text-body-secondary">
+        <ng-container *ngIf="filterText; else allRows">{{ visibleRows }} of {{ totalRows }} rows</ng-container>
+        <ng-template #allRows>{{ totalRows }} rows</ng-template>
+      </span>
+    </div>
+    <div class="card-body">
+      <div *ngIf="!dataSource" class="results-empty">
+        Choose an account, profile and date, then select Retrieve.
+      </div>
+
+      <table *ngIf="dataSource" [dataSource]="dataSource" [style.width.px]="totalWidth"
+             (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
+        <colgroup>
+          <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">
+        </colgroup>
         <ng-container matColumnDef="name">
-          <th *matHeaderCellDef mat-header-cell>
-            <span [style.paddingLeft.px]="20"> Name </span>
-          </th>
+          <th *matHeaderCellDef [appColumnResize]="columnWidths" (resized)="saveColumnWidths()" columnKey="name"
+              mat-header-cell mat-sort-header>Name</th>
           <td *matCellDef="let data" mat-cell>
-            <button (click)="treeControl.toggle(data)"
-                    [style.marginLeft.px]="data.level * 16"
-                    [style.visibility]="!data.expandable ? 'hidden' : ''"
-                    mat-icon-button>
-              <mat-icon class="mat-icon-rtl-mirror">
-                {{ treeControl.isExpanded(data) ? 'expand_more' : 'chevron_right' }}
-              </mat-icon>
-            </button>
-
-            {{ data.name }}
+            <div [style.paddingLeft.px]="data.level * 16" class="tree-cell">
+              <button (click)="toggle(data)" [attr.aria-label]="'Toggle ' + data.name"
+                      [class.invisible]="!data.expandable" class="tree-toggle" type="button">
+                <i [class.bi-chevron-down]="treeControl.isExpanded(data)"
+                   [class.bi-chevron-right]="!treeControl.isExpanded(data)" class="bi"></i>
+              </button>
+              <span [title]="data.name" class="text-truncate">{{ data.name }}</span>
+            </div>
           </td>
         </ng-container>
 
-
-        <ng-container matColumnDef="1D">
-          <th *matHeaderCellDef mat-header-cell> 1 Day</th>
-          <td *matCellDef="let data"
-              mat-cell> {{ data.pmaExportRow.accountValues['1D']?.BaseTotalRor | number:'.3-3' }}
+        <ng-container *ngFor="let period of periods" [matColumnDef]="period.key">
+          <th *matHeaderCellDef [appColumnResize]="columnWidths" [columnKey]="period.key" (resized)="saveColumnWidths()"
+              arrowPosition="before" class="num" mat-header-cell mat-sort-header>{{ period.label }}</th>
+          <td *matCellDef="let data" mat-cell
+              [class.negative]="data.pmaExportRow.accountValues[period.key]?.BaseTotalRor < 0"
+              class="num">
+            {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | number:'.3-3' }}
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="MTD">
-          <th *matHeaderCellDef mat-header-cell> Month To Date</th>
-          <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues.MTD?.BaseTotalRor | number:'.3-3' }}
+        <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
+        <tr *matNoDataRow class="mat-mdc-row">
+          <td [attr.colspan]="displayedColumns.length" class="mat-mdc-cell results-empty">
+            No rows match "{{ filterText }}".
           </td>
-        </ng-container>
-
-        <ng-container matColumnDef="1M">
-          <th *matHeaderCellDef mat-header-cell> Last Month</th>
-          <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues['1M']?.BaseTotalRor | number:'.3-3' }}
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="3M">
-          <th *matHeaderCellDef mat-header-cell> Last Three Month</th>
-          <td *matCellDef="let data" mat-cell> {{ data.pmaExportRow.accountValues['3M']?.BaseTotalRor | number:'.3-3' }}
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="YTD">
-          <th *matHeaderCellDef mat-header-cell> Year To Date</th>
-          <td *matCellDef="let data"
-              mat-cell> {{ data.pmaExportRow.accountValues['YTD']?.BaseTotalRor | number:'.3-3' }}
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="ITD">
-          <th *matHeaderCellDef mat-header-cell> Inception To Date</th>
-          <td *matCellDef="let data"
-              mat-cell> {{ data.pmaExportRow.accountValues['ITD']?.BaseTotalRor | number:'.3-3' }}
-          </td>
-        </ng-container>
-
-        <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
-        <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+        </tr>
+        <tr *matRowDef="let row; columns: displayedColumns;" [class.tree-parent]="row.expandable"
+            [class.tree-root]="row.level === 0" mat-row></tr>
       </table>
     </div>
   </div>
-</form>
+</div>
