@@ -5,7 +5,8 @@
  *
  */
 
-import {Component} from '@angular/core';
+import {Component, Inject, LOCALE_ID} from '@angular/core';
+import {formatNumber} from '@angular/common';
 import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
 import {PmaExportService} from '../../services/pmaexport/pma-export.service';
@@ -16,12 +17,13 @@ import {FlatTreeControl} from '@angular/cdk/tree';
 import {finalize} from 'rxjs/operators';
 import {ColumnWidths} from '../../../../common/column-resize.directive';
 import {Sort} from '@angular/material/sort';
-import {compareValues, countTree, filterTree, sortTree} from '../../../../common/tree-table.utils';
+import {buildRowFilter, compareValues, countTree, FilterContext, filterTreeMatches, sortTree} from '../../../../common/tree-table.utils';
 
 const COLUMN_WIDTHS_KEY = 'minerva.pmaHistory.columnWidths';
+const SHOW_FILTERS_KEY = 'minerva.pmaHistory.showColumnFilters';
 
 
-interface PmaHistoryRowView {
+interface PmaHistoryRowView extends FilterContext {
   /** Unique across periods: row ids repeat in each period's tree */
   key: string;
   name: string;
@@ -32,6 +34,8 @@ interface PmaHistoryRowView {
 
 interface ExampleFlatNode {
   key: string;
+  /** Shown only because a descendant matches the column filters */
+  filterContext?: boolean;
   expandable: boolean;
   name: string;
   pmaExportRow?: PmaHistoryRow;
@@ -56,7 +60,15 @@ export class PmaHistoryComponent {
   /** Rows the user collapsed by hand (by row key); kept across sort/filter */
   private collapsedKeys = new Set<string>();
 
-  filterText = '';
+  /** Text of each column's filter box, by column id */
+  columnFilters: Record<string, string> = {};
+
+  /** Code flag: false removes the Filters button and the filter row entirely */
+  readonly columnFiltersEnabled = true;
+  /** Whether the filter row shows on a user's first visit (afterwards their choice is remembered) */
+  readonly columnFiltersVisibleByDefault = false;
+  /** Filter row currently shown; toggled by the Filters button */
+  filtersVisible = this.columnFiltersEnabled && this.loadFiltersVisible();
   sort: Sort = {active: '', direction: ''};
   totalRows = 0;
   visibleRows = 0;
@@ -73,6 +85,13 @@ export class PmaHistoryComponent {
   ];
 
   readonly groupColumns = ['group-info', 'group-account', 'group-benchmark'];
+
+  /** Non-metric columns, filtered by text */
+  readonly textFilterColumns = [
+    {key: 'name', label: 'Name'},
+    {key: 'startDate', label: 'Start Date'},
+    {key: 'endDate', label: 'End Date'}
+  ];
 
   readonly displayedColumns: string[] = [
     'name', 'startDate', 'endDate',
@@ -119,7 +138,21 @@ export class PmaHistoryComponent {
 
   exportForm: FormGroup;
 
-  constructor(private pmaExportService: PmaExportService, private formBuilder: FormBuilder) {
+  /** Ids of the filter row's cells, one per displayed column */
+  get filterColumns(): string[] {
+    return this.displayedColumns.map(c => 'filter-' + c);
+  }
+
+  get hasFilters(): boolean {
+    return Object.values(this.columnFilters).some(v => !!v?.trim());
+  }
+
+  get activeFilterCount(): number {
+    return Object.values(this.columnFilters).filter(v => !!v?.trim()).length;
+  }
+
+  constructor(private pmaExportService: PmaExportService, private formBuilder: FormBuilder,
+              @Inject(LOCALE_ID) private locale: string) {
     this.exportForm = this.formBuilder.group({
       account: new UntypedFormControl(),
       profile: new UntypedFormControl(),
@@ -166,6 +199,7 @@ export class PmaHistoryComponent {
   private transformer = (node: PmaHistoryRowView, level: number) => {
     return {
       key: node.key,
+      filterContext: !!node.filterContext,
       expandable: !!node.children && node.children.length > 0,
       name: node.name,
       pmaExportRow: node.pmaExportRow,
@@ -227,13 +261,36 @@ export class PmaHistoryComponent {
     this.applyView();
   }
 
-  onFilterChange(text: string) {
-    this.filterText = text;
+  onFilterChange(column: string, text: string) {
+    this.columnFilters = {...this.columnFilters, [column]: text};
     this.applyView();
   }
 
-  clearFilter() {
-    this.onFilterChange('');
+  clearFilters() {
+    this.columnFilters = {};
+    this.applyView();
+  }
+
+  toggleFilters() {
+    this.filtersVisible = !this.filtersVisible;
+    if (!this.filtersVisible && this.hasFilters) {
+      // Don't leave rows hidden by filters the user can no longer see
+      this.clearFilters();
+    }
+    try {
+      localStorage.setItem(SHOW_FILTERS_KEY, String(this.filtersVisible));
+    } catch {
+      // storage unavailable: the choice just won't be remembered
+    }
+  }
+
+  private loadFiltersVisible(): boolean {
+    try {
+      const saved = localStorage.getItem(SHOW_FILTERS_KEY);
+      return saved === null ? this.columnFiltersVisibleByDefault : saved === 'true';
+    } catch {
+      return this.columnFiltersVisibleByDefault;
+    }
   }
 
   /** Rebuilds the visible tree from the source using the current filter and sort. */
@@ -243,9 +300,10 @@ export class PmaHistoryComponent {
     }
     let tree = this.sourceTree;
 
-    const filter = this.filterText.trim().toLowerCase();
-    if (filter) {
-      tree = filterTree(tree, n => (n.name ?? '').toLowerCase().includes(filter));
+    const rowFilter = buildRowFilter<PmaHistoryRowView>(this.columnFilters, (n, c) => this.cell(n, c));
+    const filter = !!rowFilter;
+    if (rowFilter) {
+      tree = filterTreeMatches(tree, rowFilter);
     }
 
     const {active, direction} = this.sort;
@@ -265,21 +323,30 @@ export class PmaHistoryComponent {
   }
 
   private sortValue(node: PmaHistoryRowView, column: string): string | number {
+    return this.cell(node, column).value as string | number;
+  }
+
+  /** Raw value (for sorting and numeric filters) and the text shown in the cell. */
+  private cell(node: PmaHistoryRowView, column: string): { value: unknown; display: string } {
     const row = node.pmaExportRow as any;
     switch (column) {
       case 'name':
-        return node.name;
+        return {value: node.name, display: node.name ?? ''};
       case 'startDate':
-      case 'endDate':
+      case 'endDate': {
         // ISO date strings sort correctly as text
-        return row?.[column] == null ? null : String(row[column]);
+        const value = row?.[column] == null ? null : String(row[column]);
+        return {value, display: value ?? ''};
+      }
     }
     // Metric columns are 'account-<key>' / 'benchmark-<key>'
     const [group, key] = column.split('-');
     const metric = this.metrics.find(m => m.key === key);
     const values = group === 'account' ? row?.accountValues : row?.benchmarkValues;
-    return metric ? values?.[metric.field] : null;
+    const value = metric ? values?.[metric.field] : null;
+    return {value, display: typeof value === 'number' ? formatNumber(value, this.locale, metric.format) : ''};
   }
+
 
 
 }

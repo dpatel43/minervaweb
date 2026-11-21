@@ -57,24 +57,27 @@
             Retrieve
           </button>
         </div>
+        <div *ngIf="dataSource" class="col-auto ms-auto results-controls">
+          <span class="text-body-secondary">
+            <ng-container *ngIf="hasFilters; else allRows">{{ visibleRows }} of {{ totalRows }} rows</ng-container>
+            <ng-template #allRows>{{ totalRows }} rows</ng-template>
+          </span>
+          <button (click)="clearFilters()" *ngIf="hasFilters" class="btn btn-sm btn-link clear-filters" type="button">
+            Clear filters
+          </button>
+          <button (click)="toggleFilters()" *ngIf="columnFiltersEnabled" [attr.aria-pressed]="filtersVisible"
+                  [class.active]="filtersVisible"
+                  [title]="filtersVisible ? 'Hide column filters (clears them)' : 'Show a filter box under each column title. Numbers: >0, <=-0.01, <>0, 0.01..0.05, or text to match.'"
+                  class="btn btn-outline-secondary filter-toggle" type="button">
+            <i class="bi bi-funnel me-1"></i>Filters
+            <span *ngIf="hasFilters" class="badge filter-count">{{ activeFilterCount }}</span>
+          </button>
+        </div>
       </div>
     </div>
   </form>
 
   <div class="card results-card">
-    <div *ngIf="dataSource" class="card-header results-toolbar">
-      <div class="input-group table-filter">
-        <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input #filterInput (input)="onFilterChange(filterInput.value)" [value]="filterText" aria-label="Filter rows"
-               class="form-control" placeholder="Filter by name" type="search">
-        <button (click)="clearFilter()" *ngIf="filterText" aria-label="Clear filter" class="btn btn-outline-secondary"
-                type="button"><i class="bi bi-x-lg"></i></button>
-      </div>
-      <span class="text-body-secondary">
-        <ng-container *ngIf="filterText; else allRows">{{ visibleRows }} of {{ totalRows }} rows</ng-container>
-        <ng-template #allRows>{{ totalRows }} rows</ng-template>
-      </span>
-    </div>
     <div class="card-body">
       <div *ngIf="!dataSource" class="results-empty">
         Choose an account, profile and date range, then select Retrieve.
@@ -119,6 +122,26 @@
           <td *matCellDef="let data" class="text-nowrap" mat-cell>{{ data.pmaExportRow.endDate }}</td>
         </ng-container>
 
+        <!-- Filter row: one box per column -->
+        <ng-container *ngFor="let c of textFilterColumns" [matColumnDef]="'filter-' + c.key">
+          <th *matHeaderCellDef class="filter-cell" mat-header-cell>
+            <input #f (input)="onFilterChange(c.key, f.value)" (keydown.escape)="f.value = ''; onFilterChange(c.key, '')"
+                   [attr.aria-label]="'Filter ' + c.label" [value]="columnFilters[c.key] ?? ''"
+                   class="form-control column-filter" placeholder="Filter">
+          </th>
+        </ng-container>
+        <ng-container *ngFor="let group of ['account', 'benchmark']">
+          <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'filter-' + group + '-' + m.key">
+            <th *matHeaderCellDef [class.group-start]="first" class="filter-cell" mat-header-cell>
+              <input #f (input)="onFilterChange(group + '-' + m.key, f.value)"
+                     (keydown.escape)="f.value = ''; onFilterChange(group + '-' + m.key, '')"
+                     [attr.aria-label]="'Filter ' + group + ' ' + m.label" [value]="columnFilters[group + '-' + m.key] ?? ''"
+                     class="form-control column-filter num" placeholder="e.g. >0"
+                     title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
+            </th>
+          </ng-container>
+        </ng-container>
+
         <!-- Portfolio metrics -->
         <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'account-' + m.key">
           <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'account-' + m.key"
@@ -145,12 +168,15 @@
 
         <tr *matHeaderRowDef="groupColumns; sticky: true" class="group-header-row" mat-header-row></tr>
         <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
+        <tr *matHeaderRowDef="filterColumns; sticky: true" [class.d-none]="!filtersVisible" class="filter-row"
+            mat-header-row></tr>
         <tr *matNoDataRow class="mat-mdc-row">
           <td [attr.colspan]="displayedColumns.length" class="mat-mdc-cell results-empty">
-            No rows match "{{ filterText }}".
+            No rows match the column filters.
           </td>
         </tr>
-        <tr *matRowDef="let row; columns: displayedColumns;" [class.tree-parent]="row.expandable"
+        <tr *matRowDef="let row; columns: displayedColumns;" [class.filter-context]="row.filterContext"
+            [class.tree-parent]="row.expandable"
             [class.tree-root]="row.level === 0" mat-row></tr>
       </table>
     </div>

@@ -5,7 +5,8 @@
  *
  */
 
-import {Component, OnInit} from '@angular/core';
+import {Component, Inject, LOCALE_ID, OnInit} from '@angular/core';
+import {formatNumber} from '@angular/common';
 import {MatTreeFlatDataSource, MatTreeFlattener} from "@angular/material/tree";
 import {FlatTreeControl} from "@angular/cdk/tree";
 import {PmaSummaryExportRequest} from "../../data/pmaexport/pma-summary-export-request";
@@ -16,11 +17,12 @@ import {UntypedFormControl, UntypedFormGroup} from "@angular/forms";
 import {finalize} from "rxjs/operators";
 import {ColumnWidths} from "../../../../common/column-resize.directive";
 import {Sort} from "@angular/material/sort";
-import {compareValues, countTree, filterTree, sortTree} from "../../../../common/tree-table.utils";
+import {buildRowFilter, compareValues, countTree, FilterContext, filterTreeMatches, sortTree} from "../../../../common/tree-table.utils";
 
 const COLUMN_WIDTHS_KEY = 'minerva.pmaExport.columnWidths';
+const SHOW_FILTERS_KEY = 'minerva.pmaExport.showColumnFilters';
 
-interface PmaExportRowView {
+interface PmaExportRowView extends FilterContext {
   name: string;
   pmaExportRow?: PmaSummaryExportRow;
   children?: PmaExportRowView[];
@@ -29,6 +31,8 @@ interface PmaExportRowView {
 
 interface ExampleFlatNode {
   id: number;
+  /** Shown only because a descendant matches the column filters */
+  filterContext?: boolean;
   expandable: boolean;
   name: string;
   pmaExportRow?: PmaSummaryExportRow;
@@ -104,12 +108,33 @@ export class PMAExportComponent implements OnInit {
   /** Rows the user collapsed by hand (by row id); kept across sort/filter */
   private collapsedIds = new Set<number>();
 
-  filterText = '';
+  /** Text of each column's filter box, by column id */
+  columnFilters: Record<string, string> = {};
+
+  /** Code flag: false removes the Filters button and the filter row entirely */
+  readonly columnFiltersEnabled = true;
+  /** Whether the filter row shows on a user's first visit (afterwards their choice is remembered) */
+  readonly columnFiltersVisibleByDefault = false;
+  /** Filter row currently shown; toggled by the Filters button */
+  filtersVisible = this.columnFiltersEnabled && this.loadFiltersVisible();
   sort: Sort = {active: '', direction: ''};
   totalRows = 0;
   visibleRows = 0;
 
-  constructor(private pmaExportService: PmaExportService) {
+  /** Ids of the filter row's cells, one per displayed column */
+  get filterColumns(): string[] {
+    return this.displayedColumns.map(c => 'filter-' + c);
+  }
+
+  get hasFilters(): boolean {
+    return Object.values(this.columnFilters).some(v => !!v?.trim());
+  }
+
+  get activeFilterCount(): number {
+    return Object.values(this.columnFilters).filter(v => !!v?.trim()).length;
+  }
+
+  constructor(private pmaExportService: PmaExportService, @Inject(LOCALE_ID) private locale: string) {
   }
 
   hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
@@ -149,6 +174,7 @@ export class PMAExportComponent implements OnInit {
   private transformer = (node: PmaExportRowView, level: number) => {
     return {
       id: node.pmaExportRow?.id,
+      filterContext: !!node.filterContext,
       expandable: !!node.children && node.children.length > 0,
       name: node.name,
       pmaExportRow: node.pmaExportRow,
@@ -206,13 +232,36 @@ export class PMAExportComponent implements OnInit {
     this.applyView();
   }
 
-  onFilterChange(text: string) {
-    this.filterText = text;
+  onFilterChange(column: string, text: string) {
+    this.columnFilters = {...this.columnFilters, [column]: text};
     this.applyView();
   }
 
-  clearFilter() {
-    this.onFilterChange('');
+  clearFilters() {
+    this.columnFilters = {};
+    this.applyView();
+  }
+
+  toggleFilters() {
+    this.filtersVisible = !this.filtersVisible;
+    if (!this.filtersVisible && this.hasFilters) {
+      // Don't leave rows hidden by filters the user can no longer see
+      this.clearFilters();
+    }
+    try {
+      localStorage.setItem(SHOW_FILTERS_KEY, String(this.filtersVisible));
+    } catch {
+      // storage unavailable: the choice just won't be remembered
+    }
+  }
+
+  private loadFiltersVisible(): boolean {
+    try {
+      const saved = localStorage.getItem(SHOW_FILTERS_KEY);
+      return saved === null ? this.columnFiltersVisibleByDefault : saved === 'true';
+    } catch {
+      return this.columnFiltersVisibleByDefault;
+    }
   }
 
   /** Rebuilds the visible tree from the source using the current filter and sort. */
@@ -222,9 +271,10 @@ export class PMAExportComponent implements OnInit {
     }
     let tree = this.sourceTree;
 
-    const filter = this.filterText.trim().toLowerCase();
-    if (filter) {
-      tree = filterTree(tree, n => (n.name ?? '').toLowerCase().includes(filter));
+    const rowFilter = buildRowFilter<PmaExportRowView>(this.columnFilters, (n, c) => this.cell(n, c));
+    const filter = !!rowFilter;
+    if (rowFilter) {
+      tree = filterTreeMatches(tree, rowFilter);
     }
 
     const {active, direction} = this.sort;
@@ -244,12 +294,19 @@ export class PMAExportComponent implements OnInit {
   }
 
   private sortValue(node: PmaExportRowView, column: string): string | number {
+    return this.cell(node, column).value as string | number;
+  }
+
+  /** Raw value (for sorting and numeric filters) and the text shown in the cell. */
+  private cell(node: PmaExportRowView, column: string): { value: unknown; display: string } {
     if (column === 'name') {
-      return node.name;
+      return {value: node.name, display: node.name ?? ''};
     }
     // accountValues is typed as a Map but arrives as a plain JSON object
-    return (node.pmaExportRow?.accountValues as any)?.[column]?.BaseTotalRor;
+    const value = (node.pmaExportRow?.accountValues as any)?.[column]?.BaseTotalRor;
+    return {value, display: typeof value === 'number' ? formatNumber(value, this.locale, '.3-3') : ''};
   }
+
 
 
 }
