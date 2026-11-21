@@ -1,0 +1,26 @@
+# Installed fresh in the image by `npm ci`; a local copy would overwrite it
+node_modules
+
+# Build output and caches (the image builds its own)
+dist
+out-tsc
+.angular
+coverage
+
+# Generated at container start by docker-entrypoint.sh
+src/assets/env.js
+
+# Version control, IDE and OS files
+.git
+.gitignore
+.idea
+*.iml
+.vscode
+.DS_Store
+
+# Not needed to build the image
+Dockerfile
+.dockerignore
+Jenkinsfile
+README.md
+CLAUDE.md
