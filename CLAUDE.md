@@ -11,11 +11,13 @@ Minervaweb is an Angular 20 single-page front end (NgModule-based, not standalon
 - `npm start` — dev server on `0.0.0.0:4200` (opens browser)
 - `npm run build` — production AOT build to `dist/minervaweb`
 - `npm test` — Karma + Jasmine unit tests (Chrome launcher)
-  - Single run / headless: `npx ng test --watch=false --browsers=ChromeHeadless`
+  - Single run / headless: `npx ng test --watch=false --browsers=ChromeHeadlessCI` (custom launcher in `karma.conf.js`, adds `--no-sandbox` for CI/containers)
+  - Coverage: add `--code-coverage` (report in `coverage/minervaweb/`)
   - Single spec file: `npx ng test --include src/app/path/to/file.spec.ts`
+  - Specs needing the API use `apiTestingProviders` (`src/app/testing/test-providers.ts`); Field specs use the real `field` reducer via `provideStore({field})`. The test builder discovers `*.spec.ts` itself, so `src/test.ts` only sets up the environment (including a test `window.__env`).
 - `npm run dockerbuild` / `npm run rundocker` — build and run the nginx image (serves on 8080, `apiServer` env var points at the API)
 
-Known broken scripts: `npm test` (`karma.conf.js` requires `karma-coverage-istanbul-reporter`, which isn't installed; `karma-coverage` is), `npm run lint` (no `lint` target in `angular.json`; `tslint.json` is legacy) and `npm run e2e` (Protractor config in `e2e/` but Protractor isn't installed). `npm run devstart` references `proxyconfigdev.json`, which doesn't exist.
+Known broken scripts: `npm run lint` (no `lint` target in `angular.json`; `tslint.json` is legacy) and `npm run e2e` (Protractor config in `e2e/` but Protractor isn't installed). `npm run devstart` references `proxyconfigdev.json`, which doesn't exist.
 
 ## Runtime API configuration
 

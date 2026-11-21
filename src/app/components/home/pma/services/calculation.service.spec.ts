@@ -8,12 +8,13 @@
 import {TestBed} from '@angular/core/testing';
 
 import {CalculationService} from './calculation.service';
+import {apiTestingProviders} from '../../../../testing/test-providers';
 
 describe('CalculationService', () => {
   let service: CalculationService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({providers: apiTestingProviders});
     service = TestBed.inject(CalculationService);
   });
 

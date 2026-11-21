@@ -8,6 +8,9 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {DashboardComponent} from './dashboard.component';
+import {provideRouter} from '@angular/router';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {apiTestingProviders} from '../../../../../testing/test-providers';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -15,7 +18,8 @@ describe('DashboardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DashboardComponent]
+      imports: [DashboardComponent],
+      providers: [...apiTestingProviders, provideRouter([]), provideNoopAnimations()]
     })
       .compileComponents();
 

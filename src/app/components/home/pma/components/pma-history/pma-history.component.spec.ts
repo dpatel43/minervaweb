@@ -8,6 +8,11 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {PmaHistoryComponent} from './pma-history.component';
+import {provideRouter} from '@angular/router';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {MineraCommonModule} from '../../../../common/minera-common.module';
+import {HomeModule} from '../../../home.module';
+import {apiTestingProviders} from '../../../../../testing/test-providers';
 
 describe('PmaHistoryComponent', () => {
   let component: PmaHistoryComponent;
@@ -15,7 +20,10 @@ describe('PmaHistoryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PmaHistoryComponent]
+      // Not standalone: declared here with the modules PmaModule gives it
+      declarations: [PmaHistoryComponent],
+      imports: [MineraCommonModule, HomeModule],
+      providers: [...apiTestingProviders, provideRouter([]), provideNoopAnimations()]
     })
       .compileComponents();
 
