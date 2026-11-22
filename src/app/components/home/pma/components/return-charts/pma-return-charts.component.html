@@ -5,11 +5,21 @@
   ~  */
   -->
 
+<div class="charts-toolbar">
+  <i aria-hidden="true" class="bi bi-bar-chart-line"></i>
+  <span [title]="row?.name" class="charts-toolbar-title">Charts for <strong>{{ row?.name }}</strong></span>
+  <button (click)="toggleCollapsed()" [attr.aria-expanded]="!collapsed" class="btn btn-sm btn-outline-secondary charts-toggle"
+          type="button">
+    <i [class.bi-chevron-down]="collapsed" [class.bi-chevron-up]="!collapsed" aria-hidden="true" class="bi"></i>
+    {{ collapsed ? 'Show charts' : 'Hide charts' }}
+  </button>
+</div>
+
+<div *ngIf="!collapsed" class="charts-grid">
 <!-- Chart 1: returns by period for the selected row -->
 <section aria-labelledby="period-chart-title" class="chart">
   <header class="chart-header">
     <h2 class="chart-title" id="period-chart-title">Returns by period</h2>
-    <div [title]="row?.name" class="chart-subtitle">{{ row?.name }}</div>
   </header>
   <svg [attr.height]="periodHeight" [attr.viewBox]="'0 0 ' + width + ' ' + periodHeight" [attr.width]="width"
        aria-label="Returns by period. Values are also in the table." class="chart-svg" role="group">
@@ -55,7 +65,10 @@
     </div>
   </header>
 
-  <svg *ngIf="segments.length; else noSegments" [attr.height]="segmentHeight"
+  <!-- side by side, the segment list scrolls so it stays level with the period chart -->
+  <div *ngIf="segments.length; else noSegments" [style.max-height.px]="sideBySide ? periodHeight + 18 : null"
+       class="segment-scroll">
+  <svg [attr.height]="segmentHeight"
        [attr.viewBox]="'0 0 ' + width + ' ' + segmentHeight" [attr.width]="width"
        aria-label="Segment returns. Values are also in the table." class="chart-svg" role="group">
     <line [attr.x1]="segmentZeroX" [attr.x2]="segmentZeroX" [attr.y2]="segmentHeight - 2" class="baseline"
@@ -70,10 +83,12 @@
       <text [attr.text-anchor]="s.labelAnchor" [attr.x]="s.labelX" [attr.y]="s.y + 10.5" class="value">{{ s.display }}</text>
     </g>
   </svg>
+  </div>
   <ng-template #noSegments>
     <p class="chart-empty">{{ row?.name }} has no segments to compare.</p>
   </ng-template>
 </section>
+</div>
 
 <div *ngIf="tooltip" [style.left.px]="tooltip.x" [style.top.px]="tooltip.y" class="chart-tooltip" role="presentation">
   <strong>{{ tooltip.value }}</strong>

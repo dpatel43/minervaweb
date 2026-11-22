@@ -10,10 +10,80 @@
   font-variant-numeric: tabular-nums;
 }
 
+.charts-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  color: var(--app-muted);
+}
+
+.charts-toolbar-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.charts-toolbar-title strong {
+  color: var(--bs-body-color);
+  font-weight: 600;
+}
+
+.charts-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+.charts-grid {
+  margin-top: 6px;
+}
+
+/* Stacked (narrow panel) */
 .chart + .chart {
   margin-top: 16px;
   padding-top: 12px;
   border-top: 1px solid var(--app-border);
+}
+
+/* Side by side: two equal columns. The 25px gap matches COLUMN_GAP in the
+   component, which sizes each SVG to one column; the divider sits in the gap. */
+:host(.side-by-side) .charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 25px;
+  align-items: start;
+}
+
+:host(.side-by-side) .chart + .chart {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+:host(.side-by-side) .chart + .chart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -13px;
+  border-left: 1px solid var(--app-border);
+}
+
+.chart {
+  position: relative;
+  min-width: 0;
+}
+
+.segment-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .chart-header {

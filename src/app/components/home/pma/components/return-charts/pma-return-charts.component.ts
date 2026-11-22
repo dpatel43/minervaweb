@@ -6,7 +6,8 @@
  */
 
 import {
-  Component, ElementRef, EventEmitter, Inject, Input, LOCALE_ID, NgZone, OnChanges, OnDestroy, OnInit, Output
+  Component, ElementRef, EventEmitter, HostBinding, Inject, Input, LOCALE_ID, NgZone, OnChanges, OnDestroy, OnInit,
+  Output
 } from '@angular/core';
 import {formatNumber} from '@angular/common';
 
@@ -64,19 +65,23 @@ interface Tick {
 }
 
 const MIN_WIDTH = 260;
-const MAX_WIDTH = 720;
+const MAX_WIDTH = 1000;
+const COLUMN_GAP = 25;    // between the two charts when side by side (matches the CSS gap + divider)
+const PERIOD_PLOT_HEIGHT = 150;
+const COLLAPSED_KEY = 'pmaReturnCharts.collapsed';
 const BAR_MAX = 24;       // mark spec: bars never thicker than 24px
 const RADIUS = 4;         // rounded data end, square at the baseline
 const AXIS_LINE = 12;     // height of one line of period label
-const PERIOD_PLOT_HEIGHT = 214;
 const PERIOD_BOTTOM = 42; // value label under a negative column + one line of period label
 
 /**
- * Two small SVG charts beside the PMA Export table:
+ * Two SVG charts in a strip above the Performance Summary / History tables:
  *  1. Returns by period for the selected row (columns above/below zero).
  *  2. Returns of the row's sub-segments for one period (ranked bars).
  * Positive and negative returns use a validated blue/red diverging pair.
  * The table itself is the charts' table view.
+ * The charts sit side by side when the panel has room for two, otherwise stacked.
+ * The strip can be collapsed to give the table the room; that choice is remembered.
  */
 @Component({
   selector: 'app-pma-return-charts',
@@ -96,7 +101,11 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() valueFormat = '.3-3';
   @Output() periodChange = new EventEmitter<string>();
 
+  /** Width of one chart */
   width = 360;
+  /** Two charts side by side (the panel is wide enough) rather than stacked */
+  @HostBinding('class.side-by-side') sideBySide = false;
+  @HostBinding('class.collapsed') collapsed = readCollapsed();
 
   // Chart 1: returns by period
   // grows by one line for each extra line of period label, so the plot keeps its height
@@ -130,12 +139,19 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Fill whatever width the panel has, so the charts use the free space
+    // Fill whatever width the panel has: two charts side by side when both get at
+    // least MIN_WIDTH, otherwise one per line
     this.resizeObserver = new ResizeObserver(entries => {
       const w = Math.round(entries[0].contentRect.width);
-      const width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, w));
-      if (Math.abs(width - this.width) >= 2) {
+      if (w <= 0) {
+        return; // collapsed or hidden: keep the last layout
+      }
+      const sideBySide = w >= 2 * MIN_WIDTH + COLUMN_GAP;
+      const column = sideBySide ? Math.floor((w - COLUMN_GAP) / 2) : w;
+      const width = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, column));
+      if (sideBySide !== this.sideBySide || Math.abs(width - this.width) >= 2) {
         this.zone.run(() => {
+          this.sideBySide = sideBySide;
           this.width = width;
           this.build();
         });
@@ -150,6 +166,16 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.resizeObserver?.disconnect();
+  }
+
+  toggleCollapsed() {
+    this.collapsed = !this.collapsed;
+    this.tooltip = null;
+    try {
+      localStorage.setItem(COLLAPSED_KEY, String(this.collapsed));
+    } catch {
+      // storage unavailable: the choice just isn't remembered
+    }
   }
 
   selectPeriod(key: string) {
@@ -170,7 +196,8 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
       x = r.left + r.width / 2 - box.left;
       y = r.top - box.top;
     }
-    this.tooltip = {x: Math.min(x, this.width - 120), y, value: display, label};
+    // keep the centred tooltip inside the panel
+    this.tooltip = {x: Math.max(60, Math.min(x, box.width - 60)), y, value: display, label};
   }
 
   hideTooltip() {
@@ -360,4 +387,12 @@ export function findWithParent<T extends ReturnNode>(nodes: T[], id: number, par
     }
   }
   return null;
+}
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }

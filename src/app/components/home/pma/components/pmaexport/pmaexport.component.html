@@ -56,6 +56,12 @@
     </div>
   </form>
 
+  <aside *ngIf="dataSource && selectedRow" aria-label="Charts for the selected row" class="card charts-card">
+    <app-pma-return-charts (periodChange)="chartPeriod = $event" [parent]="selectedParent"
+                           [period]="chartPeriod" [periods]="periods"
+                           [row]="selectedRow"></app-pma-return-charts>
+  </aside>
+
   <div class="card results-card with-charts">
     <div class="card-body">
       <div *ngIf="!dataSource" class="results-empty">
@@ -126,11 +132,6 @@
                 [class.tree-root]="row.level === 0" mat-row></tr>
           </table>
         </div>
-        <aside *ngIf="selectedRow" aria-label="Charts for the selected row" class="report-split-charts">
-          <app-pma-return-charts (periodChange)="chartPeriod = $event" [parent]="selectedParent"
-                                 [period]="chartPeriod" [periods]="periods"
-                                 [row]="selectedRow"></app-pma-return-charts>
-        </aside>
       </div>
     </div>
   </div>

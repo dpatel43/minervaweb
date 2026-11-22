@@ -104,6 +104,23 @@ describe('PmaReturnChartsComponent', () => {
     expect(labels.slice(0, 2)).toEqual(['Aug 1', 'Aug 31']);
   });
 
+  it('can be collapsed to a toolbar, and remembers that', () => {
+    localStorage.removeItem('pmaReturnCharts.collapsed');
+    render(total);
+    expect(fixture.nativeElement.querySelectorAll('section.chart').length).toBe(2);
+
+    (fixture.nativeElement.querySelector('.charts-toggle') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('section.chart').length).toBe(0);
+    expect(fixture.nativeElement.querySelector('.charts-toolbar').textContent).toContain('Total Portfolio');
+    expect(localStorage.getItem('pmaReturnCharts.collapsed')).toBe('true');
+
+    component.toggleCollapsed();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('section.chart').length).toBe(2);
+    localStorage.removeItem('pmaReturnCharts.collapsed');
+  });
+
   it('labels every n-th period, counting back from the latest, when periods are crowded', () => {
     component.periods = Array.from({length: 24}, (_, i) => ({key: 'p' + i, label: 'Period ' + i, short: 'Mon ' + i}));
     component.width = 300;

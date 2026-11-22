@@ -827,8 +827,18 @@ th.num .mat-sort-header-content {
   overflow: hidden;
 }
 
-/* Report with charts beside the table (PmaReturnChartsComponent). Table and
-   charts scroll on their own, so the table keeps its sticky header. */
+/* Report with charts (PmaReturnChartsComponent): .report-page > filter-bar card,
+   then aside.charts-card, then the results card, spaced by the page's gap. The
+   charts card sizes to the charts and the table card fills the rest. Each scrolls
+   on its own, so the table keeps its sticky header. */
+.charts-card {
+  flex: 0 0 auto;
+  /* never take more than about half the page from the table */
+  max-height: 50%;
+  padding: 8px 14px 10px;
+  overflow: auto;
+}
+
 .results-card.with-charts .card-body {
   display: flex;
   flex-direction: column;
@@ -837,50 +847,15 @@ th.num .mat-sort-header-content {
 
 .report-split {
   display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
 }
 
 .report-split-table {
-  /* Table at full width; it scrolls only if the charts would get less than 290px */
-  flex: 0 0 auto;
-  max-width: calc(100% - 290px);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
-}
-
-.report-split-charts {
-  flex: 1 1 290px;
-  min-width: 290px;
-  padding: 10px 14px 12px;
-  border-left: 1px solid var(--app-border);
-  overflow: auto;
-}
-
-/* Narrow screens: charts below the table. The card scrolls as a whole; the
-   table keeps its own scroll (and sticky header) within a capped height. */
-@media (max-width: 1100px) {
-  .results-card.with-charts .card-body {
-    display: block;
-    overflow: auto;
-  }
-
-  .report-split {
-    flex-direction: column;
-  }
-
-  .report-split-table {
-    flex: 0 0 auto;
-    max-width: none;
-    max-height: max(240px, 60vh);
-  }
-
-  .report-split-charts {
-    flex: 0 0 auto;
-    min-width: 0;
-    overflow: visible;
-    border-left: 0;
-    border-top: 1px solid var(--app-border);
-  }
 }
 
 /* Clicking a row charts it */
