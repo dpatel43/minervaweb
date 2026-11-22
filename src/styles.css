@@ -421,6 +421,67 @@ app-root {
   color: var(--app-muted);
 }
 
+.nav-search-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 280px;
+  z-index: 1050;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: var(--bs-border-radius-lg);
+  background: var(--app-surface);
+  box-shadow: 0 8px 24px rgba(var(--app-navy-rgb), .18);
+}
+
+.nav-search-list {
+  max-height: 320px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.nav-search-option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: var(--bs-border-radius);
+  color: var(--bs-body-color);
+  cursor: pointer;
+}
+
+.nav-search-option.active {
+  background: rgba(var(--app-navy-rgb), .08);
+  box-shadow: inset 2px 0 0 var(--app-navy);
+}
+
+.nav-search-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-search-group {
+  flex: 0 0 auto;
+  color: var(--app-muted);
+}
+
+.nav-search-option mark {
+  padding: 0;
+  background: rgba(224, 180, 76, .35);
+  color: inherit;
+  font-weight: 600;
+}
+
+.nav-search-empty {
+  padding: 10px 12px;
+  color: var(--app-muted);
+}
+
 .app-user {
   display: flex;
   align-items: center;

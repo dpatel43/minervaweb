@@ -31,7 +31,7 @@
         </li>
       </ul>
       <div class="app-navbar-end">
-        <app-nav-search></app-nav-search>
+        <app-nav-search (selected)="openModule($event)" [moduleGroups]="moduleGroups"></app-nav-search>
         <div *ngIf="username" [title]="'Signed in as ' + username" class="app-user">
           <span aria-hidden="true" class="app-user-avatar">{{ userInitials }}</span>
           <span class="app-user-name">{{ username }}</span>

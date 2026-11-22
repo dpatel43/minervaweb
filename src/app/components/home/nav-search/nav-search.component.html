@@ -6,8 +6,35 @@
   -->
 <div class="nav-search" role="search">
   <i aria-hidden="true" class="bi bi-search nav-search-icon"></i>
-  <input #input (input)="query = input.value" (keydown.enter)="submit()" (keydown.escape)="clear()"
-         [value]="query" aria-label="Search" autocomplete="off" class="nav-search-input" placeholder="Search…"
-         spellcheck="false" type="search">
+  <input #input (focus)="onFocus()" (input)="onInput(input.value)" (keydown)="onKeydown($event)"
+         [attr.aria-activedescendant]="open && results.length ? 'nav-search-opt-' + activeIndex : null"
+         [attr.aria-expanded]="open" [value]="query" aria-autocomplete="list" aria-controls="nav-search-list"
+         aria-label="Search menu" autocomplete="off" class="nav-search-input" placeholder="Search menu…"
+         role="combobox" spellcheck="false" type="search">
   <kbd *ngIf="!query" aria-hidden="true" class="nav-search-kbd">{{ shortcutLabel }}</kbd>
+
+  <div *ngIf="open" class="nav-search-panel" data-bs-theme="light">
+    <ul *ngIf="results.length; else empty" class="nav-search-list" id="nav-search-list" role="listbox">
+      <li (mousedown)="$event.preventDefault()" (click)="choose(r)" (mouseenter)="activeIndex = i"
+          *ngFor="let r of results; let i = index; trackBy: trackResult" [attr.aria-selected]="i === activeIndex"
+          [attr.id]="'nav-search-opt-' + i" [class.active]="i === activeIndex" class="nav-search-option"
+          role="option">
+        <span class="nav-search-name">
+          <ng-container *ngFor="let p of highlight(r.module.name)">
+            <mark *ngIf="p.match; else plain">{{ p.text }}</mark>
+            <ng-template #plain>{{ p.text }}</ng-template>
+          </ng-container>
+        </span>
+        <span class="nav-search-group">
+          <ng-container *ngFor="let p of highlight(r.group)">
+            <mark *ngIf="p.match; else plainGroup">{{ p.text }}</mark>
+            <ng-template #plainGroup>{{ p.text }}</ng-template>
+          </ng-container>
+        </span>
+      </li>
+    </ul>
+    <ng-template #empty>
+      <div class="nav-search-empty">No menu items match “{{ query.trim() }}”</div>
+    </ng-template>
+  </div>
 </div>
