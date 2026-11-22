@@ -43,6 +43,8 @@ export class HomeComponent implements OnInit {
   loggedIn: boolean;
   moduleGroups: ModuleGroupVO[];
   modules: ModuleVO[] = [];
+  username = '';
+  userInitials = '';
 
   constructor(
     private router: Router,
@@ -55,6 +57,8 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.username = this.authenticationService.username;
+    this.userInitials = this.username.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase();
     this.userService.getPermittedModuleGroups().subscribe(
       (data: ModuleGroupVO[]) => {
         this.moduleGroups = data;

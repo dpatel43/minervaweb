@@ -12,10 +12,12 @@ import {MineraCommonModule} from "../common/minera-common.module";
 import {MinervaAutoCompleteComponent} from "./common/minerva-auto-complete/minerva-auto-complete.component";
 import {MinervaCacheSelectComponent} from './common/minerva-cache-select/minerva-cache-select.component';
 import {AgGridAngular} from "@ag-grid-community/angular";
+import {NavSearchComponent} from "./nav-search/nav-search.component";
 
 @NgModule({
   declarations: [
     HomeComponent,
+    NavSearchComponent,
     MinervaAutoCompleteComponent,
     MinervaCacheSelectComponent
   ],

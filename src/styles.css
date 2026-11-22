@@ -340,6 +340,153 @@ app-root {
   font-weight: 600;
 }
 
+/* Right side of the navbar: search, signed-in user, logout */
+.app-navbar-end {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.nav-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 240px;
+}
+
+.nav-search-icon {
+  position: absolute;
+  left: 9px;
+  color: rgba(255, 255, 255, .6);
+  pointer-events: none;
+}
+
+.nav-search-input {
+  width: 100%;
+  height: 26px;
+  padding: 0 46px 0 27px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  font-size: var(--app-font-size);
+  outline: none;
+  transition: background-color .15s, border-color .15s, box-shadow .15s;
+}
+
+.nav-search-input::placeholder {
+  color: rgba(255, 255, 255, .6);
+}
+
+.nav-search-input:hover {
+  background: rgba(255, 255, 255, .15);
+}
+
+.nav-search-input:focus {
+  background: #fff;
+  border-color: #fff;
+  color: var(--bs-body-color);
+  box-shadow: 0 0 0 3px rgba(224, 180, 76, .45);
+}
+
+.nav-search-input:focus::placeholder {
+  color: var(--app-muted);
+}
+
+.nav-search:focus-within .nav-search-icon {
+  color: var(--app-navy);
+}
+
+.nav-search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.nav-search-kbd {
+  position: absolute;
+  right: 7px;
+  padding: 1px 5px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(255, 255, 255, .7);
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size);
+  line-height: 1.3;
+  pointer-events: none;
+}
+
+.nav-search:focus-within .nav-search-kbd {
+  border-color: var(--app-border);
+  color: var(--app-muted);
+}
+
+.app-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255, 255, 255, .18);
+  color: rgba(255, 255, 255, .9);
+}
+
+.app-user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e0b44c;
+  color: var(--app-navy-dark);
+  font-size: var(--app-font-size);
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+.app-user-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn.app-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 13px;
+  background: transparent;
+  color: #fff;
+  font-weight: 500;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+
+.btn.app-logout:hover,
+.btn.app-logout:focus-visible {
+  background: #fff;
+  border-color: #fff;
+  color: var(--app-negative);
+}
+
+.btn.app-logout:active {
+  background: rgba(255, 255, 255, .85);
+}
+
+@media (max-width: 575.98px) {
+  .app-navbar-end {
+    flex-wrap: wrap;
+    padding-bottom: 8px;
+  }
+
+  .nav-search {
+    width: 100%;
+  }
+}
+
 .app-navbar .nav-link {
   padding-top: 11px;
   padding-bottom: 11px;
@@ -748,7 +895,7 @@ th.num .mat-sort-header-content {
   color: #fff;
   border-bottom: 0;
   border-right-color: rgba(255, 255, 255, .25);
-  font-size: 10px;
+  font-size: var(--app-font-size);
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -894,7 +1041,7 @@ body.col-resizing * {
   border-radius: 8px;
   background: var(--app-navy);
   color: #fff;
-  font-size: 10px;
+  font-size: var(--app-font-size);
   font-weight: 600;
 }
 

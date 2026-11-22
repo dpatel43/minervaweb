@@ -24,6 +24,21 @@ export class AuthenticationService {
     const loginResponseVO = localStorage.getItem('loginResponse')
     return JSON.parse(loginResponseVO).token;
   }
+  /**
+   * Username of the signed-in user, for display only. The login response carries just
+   * the JWT, whose subject is the server's UserDetails serialized as JSON. This decodes
+   * the token without verifying it, so never use it for authorization. Returns '' if absent.
+   */
+  get username(): string {
+    try {
+      const payload = this.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const subject = JSON.parse(atob(payload)).sub;
+      return JSON.parse(subject).username ?? '';
+    } catch {
+      return '';
+    }
+  }
+
   login(username, password) {
     const loginRequestVO = new LoginRequestVO();
     loginRequestVO.username = username;
