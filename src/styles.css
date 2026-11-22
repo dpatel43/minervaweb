@@ -322,6 +322,24 @@ app-root {
   color: #fff;
 }
 
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+}
+
+.app-brand-mark {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.app-brand-name {
+  font-weight: 600;
+}
+
 .app-navbar .nav-link {
   padding-top: 11px;
   padding-bottom: 11px;

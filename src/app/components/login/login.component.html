@@ -1,7 +1,10 @@
 <div class="login-page">
   <div class="card login-card">
     <div class="card-body">
-      <h1 class="login-title">Minerva Systems</h1>
+      <div class="login-brand">
+        <img alt="" class="login-brand-mark" src="assets/brand/minerva-mark.svg">
+        <h1 class="login-title">Minerva</h1>
+      </div>
       <p class="text-body-secondary mb-3">Sign in to continue</p>
       <form (ngSubmit)="onSubmit()" [formGroup]="loginForm" novalidate>
         <div class="mb-2">

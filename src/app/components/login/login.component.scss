@@ -17,8 +17,23 @@
   max-width: 320px;
 }
 
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.login-brand-mark {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+}
+
 .login-title {
   font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .4px;
   color: var(--app-navy);
-  margin-bottom: 2px;
+  margin: 0;
 }
