@@ -1041,21 +1041,38 @@ body.col-resizing * {
   background: rgba(var(--app-navy-rgb), .04);
 }
 
-/* Row count + Clear filters + Filters toggle, at the right end of a filter card */
-.results-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* Table toolbar: a slim bar on top of a results card (card-header results-toolbar
+   table-toolbar) with the row count and Clear filters on the left and the table's
+   actions (Filters, export) on the right */
+.table-toolbar {
+  min-height: 34px;
+  padding: 3px 8px 3px 12px;
+  background: var(--app-header-bg);
   white-space: nowrap;
 }
 
-.results-controls .clear-filters {
+.table-toolbar .clear-filters {
   padding: 0;
+  border: 0;
   text-decoration: none;
 }
 
-.results-controls .clear-filters:hover {
+.table-toolbar .clear-filters:hover {
   text-decoration: underline;
+}
+
+.table-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.toolbar-divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 3px 2px;
+  background: var(--app-border);
 }
 
 /* Filters toggle */
@@ -1079,6 +1096,80 @@ body.col-resizing * {
   color: #fff;
   font-size: var(--app-font-size);
   font-weight: 600;
+}
+
+/* Export icon buttons (TableExportMenuComponent) */
+.export-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid transparent;
+  color: var(--app-muted);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.export-btn:hover,
+.export-btn:focus-visible,
+.export-btn.show {
+  border-color: var(--app-border);
+  background: var(--app-surface);
+}
+
+.export-btn .export-excel {
+  color: #1d6f42;
+}
+
+.export-btn .export-csv {
+  color: var(--app-navy);
+}
+
+.export-btn:disabled .bi {
+  opacity: .45;
+}
+
+.export-menu .dropdown-menu {
+  min-width: 230px;
+  padding: 4px;
+}
+
+.export-menu .dropdown-header {
+  padding: 4px 10px 4px;
+  color: var(--app-muted);
+  font-weight: 600;
+}
+
+.export-menu .dropdown-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 6px 10px;
+  border-radius: var(--bs-border-radius);
+}
+
+.export-menu .dropdown-item .bi {
+  margin-top: 1px;
+  color: var(--app-muted);
+}
+
+.export-option {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+}
+
+.export-menu-note {
+  color: var(--app-muted);
+  font-weight: 400;
 }
 
 /* Parent rows shown only for context (a descendant matched the filters) */

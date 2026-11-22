@@ -19,6 +19,10 @@ import {ColumnWidths} from '../../../../common/column-resize.directive';
 import {Sort} from '@angular/material/sort';
 import {ChartPeriod, findWithParent, ReturnNode} from '../return-charts/pma-return-charts.component';
 import {buildRowFilter, compareValues, countTree, FilterContext, filterTreeMatches, sortTree} from '../../../../common/tree-table.utils';
+import {
+  buildExportFile, downloadBlob, ExportColumn, exportFileName, ExportRequest, exportValues, flattenForExport, isoDate,
+  TableExport
+} from '../../../../common/table-export/table-export';
 
 const COLUMN_WIDTHS_KEY = 'minerva.pmaHistory.columnWidths';
 const SHOW_FILTERS_KEY = 'minerva.pmaHistory.showColumnFilters';
@@ -58,6 +62,8 @@ export class PmaHistoryComponent {
 
   /** Tree as returned by the API; sorting and filtering always start from this */
   private sourceTree: PmaHistoryRowView[] = [];
+  /** Tree as shown: source with the current filter and sort applied (what "Current view" exports) */
+  private viewTree: PmaHistoryRowView[] = [];
   /** Rows the user collapsed by hand (by row key); kept across sort/filter */
   private collapsedKeys = new Set<string>();
 
@@ -115,6 +121,8 @@ export class PmaHistoryComponent {
   ];
 
   loading = false;
+  exporting = false;
+  exportError = '';
 
   /** Column widths in px; updated by the resize handles and remembered per browser */
   columnWidths: ColumnWidths = this.loadColumnWidths();
@@ -393,6 +401,7 @@ export class PmaHistoryComponent {
     }
 
     this.visibleRows = countTree(tree);
+    this.viewTree = tree;
     this.dataSource.data = tree;
     // Setting data fills treeControl.dataNodes. Expand everything except rows
     // the user collapsed; while filtering, expand all so matches are visible.
@@ -401,6 +410,88 @@ export class PmaHistoryComponent {
         this.treeControl.expand(node);
       }
     }
+  }
+
+  /** Note under "Current view" in the export menu */
+  get exportViewNote(): string {
+    return this.hasFilters ? `${this.visibleRows} of ${this.totalRows} rows, sorted as shown` : '';
+  }
+
+  async onExport(request: ExportRequest) {
+    if (!this.dataSource || this.exporting) {
+      return;
+    }
+    this.exporting = true;
+    this.exportError = '';
+    try {
+      const table = this.buildExport(request);
+      const {account, start, end} = this.exportForm.value;
+      const name = exportFileName(
+        [table.title, account?.displayValue, `${isoDate(start)} to ${isoDate(end)}`, request.scope === 'view' && this.hasFilters ? 'filtered' : ''],
+        request.format);
+      downloadBlob(await buildExportFile(table, request.format), name);
+    } catch (e) {
+      console.error('Export failed', e);
+      this.exportError = 'Export failed. Please try again.';
+    } finally {
+      this.exporting = false;
+    }
+  }
+
+  /** The table as an export: all columns, with rows from the current view or from everything retrieved. */
+  buildExport({scope}: ExportRequest): TableExport {
+    const columns: ExportColumn[] = [
+      ...this.textFilterColumns.map(c => ({key: c.key, header: c.label, widthPx: this.columnWidths[c.key]})),
+      ...this.metrics.map(m => ({
+        key: 'account-' + m.key, header: m.label, group: 'Portfolio', digits: m.format, widthPx: this.columnWidths['account-' + m.key]
+      })),
+      ...this.metrics.map(m => ({
+        key: 'benchmark-' + m.key, header: m.label, group: 'Benchmark', digits: m.format, widthPx: this.columnWidths['benchmark-' + m.key]
+      }))
+    ];
+    const view = scope === 'view';
+    const rows = flattenForExport(
+      view ? this.viewTree : this.sourceTree,
+      node => exportValues(columns, key => this.cell(node, key).value),
+      node => view && !!node.filterContext);
+
+    const {account, profile, start, end, period} = this.exportForm.value;
+    const details: [string, string][] = [
+      ['Account', account?.displayValue ?? ''],
+      ['Profile', profile?.displayValue ?? ''],
+      ['Dates', `${isoDate(start)} to ${isoDate(end)}`]
+    ];
+    if (period) {
+      details.push(['Period', period?.displayValue ?? String(period)]);
+    }
+    details.push(['Rows', view ? this.describeView() : `All data, ${this.totalRows} rows`]);
+    details.push(['Exported', formatDate(new Date(), 'yyyy-MM-dd HH:mm', this.locale)]);
+    return {title: 'Performance History', details, columns, rows, treeColumn: 'name'};
+  }
+
+  /** "Current view, 12 of 132 rows; filters: Name "tech", Portfolio Return ">0"; sorted by Return, descending" */
+  private describeView(): string {
+    const parts = [`Current view, ${this.visibleRows} of ${this.totalRows} rows`];
+    const filters = Object.entries(this.columnFilters)
+      .filter(([, v]) => v?.trim())
+      .map(([k, v]) => `${this.columnLabel(k)} "${v.trim()}"`);
+    if (filters.length) {
+      parts.push('filters: ' + filters.join(', '));
+    }
+    if (this.sort.active && this.sort.direction) {
+      parts.push(`sorted by ${this.columnLabel(this.sort.active)}, ${this.sort.direction === 'asc' ? 'ascending' : 'descending'}`);
+    }
+    return parts.join('; ');
+  }
+
+  private columnLabel(column: string): string {
+    const text = this.textFilterColumns.find(c => c.key === column);
+    if (text) {
+      return text.label;
+    }
+    const [group, key] = column.split('-');
+    const metric = this.metrics.find(m => m.key === key);
+    return `${group === 'account' ? 'Portfolio' : 'Benchmark'} ${metric?.label ?? key}`;
   }
 
   private sortValue(node: PmaHistoryRowView, column: string): string | number {

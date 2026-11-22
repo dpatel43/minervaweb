@@ -1,0 +1,37 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+<div aria-label="Export" class="export-menu" role="group">
+  <div *ngFor="let f of formats" class="dropdown">
+    <button [attr.aria-label]="'Export to ' + f.label" [disabled]="disabled || busy" [title]="'Export to ' + f.label"
+            aria-expanded="false" class="btn btn-sm export-btn" data-bs-toggle="dropdown" type="button">
+      <span *ngIf="busy && busyFormat === f.format; else icon" aria-hidden="true"
+            class="spinner-border spinner-border-sm"></span>
+      <ng-template #icon><i [class]="'bi ' + f.icon + ' ' + f.tone" aria-hidden="true"></i></ng-template>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li><h6 class="dropdown-header">Export to {{ f.label }}</h6></li>
+      <li>
+        <button (click)="choose('view', f.format)" class="dropdown-item" type="button">
+          <i aria-hidden="true" class="bi bi-funnel"></i>
+          <span class="export-option">
+            Current view
+            <span class="export-menu-note">{{ viewNote || 'Filters and sort applied' }}</span>
+          </span>
+        </button>
+      </li>
+      <li>
+        <button (click)="choose('all', f.format)" class="dropdown-item" type="button">
+          <i aria-hidden="true" class="bi bi-table"></i>
+          <span class="export-option">
+            All data
+            <span class="export-menu-note">Everything retrieved, no filters</span>
+          </span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>

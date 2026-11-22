@@ -57,22 +57,6 @@
             Retrieve
           </button>
         </div>
-        <div *ngIf="dataSource" class="col-auto ms-auto results-controls">
-          <span class="text-body-secondary">
-            <ng-container *ngIf="hasFilters; else allRows">{{ visibleRows }} of {{ totalRows }} rows</ng-container>
-            <ng-template #allRows>{{ totalRows }} rows</ng-template>
-          </span>
-          <button (click)="clearFilters()" *ngIf="hasFilters" class="btn btn-sm btn-link clear-filters" type="button">
-            Clear filters
-          </button>
-          <button (click)="toggleFilters()" *ngIf="columnFiltersEnabled" [attr.aria-pressed]="filtersVisible"
-                  [class.active]="filtersVisible"
-                  [title]="filtersVisible ? 'Hide column filters (clears them)' : 'Show a filter box under each column title. Numbers: >0, <=-0.01, <>0, 0.01..0.05, or text to match.'"
-                  class="btn btn-outline-secondary filter-toggle" type="button">
-            <i class="bi bi-funnel me-1"></i>Filters
-            <span *ngIf="hasFilters" class="badge filter-count">{{ activeFilterCount }}</span>
-          </button>
-        </div>
       </div>
     </div>
   </form>
@@ -84,6 +68,28 @@
   </aside>
 
   <div class="card results-card with-charts">
+    <div *ngIf="dataSource" class="card-header results-toolbar table-toolbar">
+      <span class="text-body-secondary">
+        <ng-container *ngIf="hasFilters; else allRows">{{ visibleRows }} of {{ totalRows }} rows</ng-container>
+        <ng-template #allRows>{{ totalRows }} rows</ng-template>
+      </span>
+      <button (click)="clearFilters()" *ngIf="hasFilters" class="btn btn-sm btn-link clear-filters" type="button">
+        Clear filters
+      </button>
+      <span *ngIf="exportError" class="text-danger" role="alert">{{ exportError }}</span>
+      <div class="table-toolbar-actions">
+        <button (click)="toggleFilters()" *ngIf="columnFiltersEnabled" [attr.aria-pressed]="filtersVisible"
+                [class.active]="filtersVisible"
+                [title]="filtersVisible ? 'Hide column filters (clears them)' : 'Show a filter box under each column title. Numbers: >0, <=-0.01, <>0, 0.01..0.05, or text to match.'"
+                class="btn btn-sm btn-outline-secondary filter-toggle" type="button">
+          <i class="bi bi-funnel me-1"></i>Filters
+          <span *ngIf="hasFilters" class="badge filter-count">{{ activeFilterCount }}</span>
+        </button>
+        <span aria-hidden="true" class="toolbar-divider"></span>
+        <app-table-export-menu (export)="onExport($event)" [busy]="exporting"
+                               [viewNote]="exportViewNote"></app-table-export-menu>
+      </div>
+    </div>
     <div class="card-body">
       <div *ngIf="!dataSource" class="results-empty">
         Choose an account, profile and date range, then select Retrieve.

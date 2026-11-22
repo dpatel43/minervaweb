@@ -19,6 +19,7 @@ import {MatSortModule} from "@angular/material/sort";
 import {MinervaTableComponent} from './minerva-paginated-and-sorted-table/minerva-table.component';
 import {ColumnResizeDirective} from './column-resize.directive';
 import {FitGridHeightDirective} from './fit-grid-height.directive';
+import {TableExportMenuComponent} from './table-export/table-export-menu.component';
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatDividerModule} from "@angular/material/divider";
@@ -26,7 +27,8 @@ import {MatDividerModule} from "@angular/material/divider";
 const COMMON_COMPONENTS = [
   MinervaTableComponent,
   ColumnResizeDirective,
-  FitGridHeightDirective
+  FitGridHeightDirective,
+  TableExportMenuComponent
 ];
 
 const MODULES = [
