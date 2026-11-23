@@ -7,7 +7,7 @@
 <div aria-label="Export" class="export-menu" role="group">
   <div *ngFor="let f of formats" class="dropdown">
     <button [attr.aria-label]="'Export to ' + f.label" [disabled]="disabled || busy" [title]="'Export to ' + f.label"
-            aria-expanded="false" class="btn btn-sm export-btn" data-bs-toggle="dropdown" type="button">
+            aria-expanded="false" class="btn btn-sm toolbar-icon-btn export-btn" data-bs-toggle="dropdown" type="button">
       <span *ngIf="busy && busyFormat === f.format; else icon" aria-hidden="true"
             class="spinner-border spinner-border-sm"></span>
       <ng-template #icon><i [class]="'bi ' + f.icon + ' ' + f.tone" aria-hidden="true"></i></ng-template>

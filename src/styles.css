@@ -1076,36 +1076,9 @@ body.col-resizing * {
 }
 
 /* Filters toggle */
-.filter-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.filter-toggle.active {
-  --bs-btn-active-bg: rgba(var(--app-navy-rgb), .1);
-  --bs-btn-active-color: var(--app-navy);
-  --bs-btn-active-border-color: rgba(var(--app-navy-rgb), .55);
-}
-
-.filter-toggle .filter-count {
-  margin-left: 4px;
-  padding: 1px 5px;
-  border-radius: 8px;
-  background: var(--app-navy);
-  color: #fff;
-  font-size: var(--app-font-size);
-  font-weight: 600;
-}
-
-/* Export icon buttons (TableExportMenuComponent) */
-.export-menu {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.export-btn {
+/* Icon-only buttons in a table toolbar (Filters, export) */
+.toolbar-icon-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1118,11 +1091,49 @@ body.col-resizing * {
   line-height: 1;
 }
 
-.export-btn:hover,
-.export-btn:focus-visible,
-.export-btn.show {
+.toolbar-icon-btn:hover,
+.toolbar-icon-btn:focus-visible,
+.toolbar-icon-btn.show {
   border-color: var(--app-border);
   background: var(--app-surface);
+  color: var(--app-navy);
+}
+
+.toolbar-icon-btn:disabled .bi {
+  opacity: .45;
+}
+
+/* Filters toggle: pressed while the filter row shows */
+.filter-toggle.active,
+.filter-toggle.active:hover {
+  border-color: rgba(var(--app-navy-rgb), .45);
+  background: rgba(var(--app-navy-rgb), .1);
+  color: var(--app-navy);
+}
+
+/* Active filter count, on the icon's top-right corner */
+.filter-toggle .filter-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border: 1.5px solid var(--app-header-bg);
+  border-radius: 8px;
+  background: var(--app-navy);
+  color: #fff;
+  font-size: var(--app-font-size);
+  font-weight: 600;
+  line-height: 12px;
+  text-align: center;
+}
+
+/* Export icon buttons (TableExportMenuComponent) */
+.export-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .export-btn .export-excel {
@@ -1131,10 +1142,6 @@ body.col-resizing * {
 
 .export-btn .export-csv {
   color: var(--app-navy);
-}
-
-.export-btn:disabled .bi {
-  opacity: .45;
 }
 
 .export-menu .dropdown-menu {
