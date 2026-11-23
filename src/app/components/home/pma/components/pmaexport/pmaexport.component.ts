@@ -6,7 +6,8 @@
  */
 
 import {Component, Inject, LOCALE_ID, OnInit} from '@angular/core';
-import {formatDate, formatNumber} from '@angular/common';
+import {formatDate} from '@angular/common';
+import {formatPercent} from '../../../../common/pipes/percent-value.pipe';
 import {MatTreeFlatDataSource, MatTreeFlattener} from "@angular/material/tree";
 import {FlatTreeControl} from "@angular/cdk/tree";
 import {PmaSummaryExportRequest} from "../../data/pmaexport/pma-summary-export-request";
@@ -353,7 +354,7 @@ export class PMAExportComponent implements OnInit {
   buildExport({scope}: ExportRequest): TableExport {
     const columns: ExportColumn[] = [
       {key: 'name', header: 'Name', widthPx: this.columnWidths['name']},
-      ...this.periods.map(p => ({key: p.key, header: p.label, group: 'Return', digits: '.3-3', widthPx: this.columnWidths[p.key]}))
+      ...this.periods.map(p => ({key: p.key, header: p.label, group: 'Return', digits: '.3-3', percent: true, widthPx: this.columnWidths[p.key]}))
     ];
     const view = scope === 'view';
     const rows = flattenForExport(
@@ -392,14 +393,14 @@ export class PMAExportComponent implements OnInit {
     return this.cell(node, column).value as string | number;
   }
 
-  /** Raw value (for sorting and numeric filters) and the text shown in the cell. */
+  /** Value in percentage points (for sorting, numeric filters and export) and the text shown in the cell. */
   private cell(node: PmaExportRowView, column: string): { value: unknown; display: string } {
     if (column === 'name') {
       return {value: node.name, display: node.name ?? ''};
     }
     // accountValues is typed as a Map but arrives as a plain JSON object
     const value = (node.pmaExportRow?.accountValues as any)?.[column]?.BaseTotalRor;
-    return {value, display: typeof value === 'number' ? formatNumber(value, this.locale, '.3-3') : ''};
+    return {value, display: formatPercent(value, this.locale, '.3-3')};
   }
 
 

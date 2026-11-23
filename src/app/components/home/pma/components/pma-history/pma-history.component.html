@@ -165,7 +165,8 @@
               <td *matCellDef="let data" [class.group-start]="first"
                   [class.negative]="m.signed && data.pmaExportRow.accountValues?.[m.field] < 0"
                   class="num" mat-cell>
-                {{ data.pmaExportRow.accountValues?.[m.field] | number:m.format }}
+                <ng-container *ngIf="m.percent; else accountPlain">{{ data.pmaExportRow.accountValues?.[m.field] | percentValue:m.format }}</ng-container>
+                <ng-template #accountPlain>{{ data.pmaExportRow.accountValues?.[m.field] | number:m.format }}</ng-template>
               </td>
             </ng-container>
 
@@ -177,7 +178,8 @@
               <td *matCellDef="let data" [class.group-start]="first"
                   [class.negative]="m.signed && data.pmaExportRow.benchmarkValues?.[m.field] < 0"
                   class="num" mat-cell>
-                {{ data.pmaExportRow.benchmarkValues?.[m.field] | number:m.format }}
+                <ng-container *ngIf="m.percent; else benchmarkPlain">{{ data.pmaExportRow.benchmarkValues?.[m.field] | percentValue:m.format }}</ng-container>
+                <ng-template #benchmarkPlain>{{ data.pmaExportRow.benchmarkValues?.[m.field] | number:m.format }}</ng-template>
               </td>
             </ng-container>
 

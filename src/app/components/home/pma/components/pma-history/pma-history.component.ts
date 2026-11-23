@@ -7,6 +7,7 @@
 
 import {Component, Inject, LOCALE_ID} from '@angular/core';
 import {formatDate, formatNumber} from '@angular/common';
+import {formatPercent} from '../../../../common/pipes/percent-value.pipe';
 import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
 import {PmaExportService} from '../../services/pmaexport/pma-export.service';
@@ -47,6 +48,18 @@ interface ExampleFlatNode {
   level: number;
 }
 
+
+interface Metric {
+  key: string;
+  label: string;
+  field: string;
+  /** DecimalPipe digits info */
+  format: string;
+  /** Negative values are shown in the negative colour */
+  signed: boolean;
+  /** Sent in percent by the API; shown with a % sign */
+  percent?: boolean;
+}
 
 @Component({
   selector: 'app-pma-history',
@@ -95,14 +108,14 @@ export class PmaHistoryComponent {
   visibleRows = 0;
 
 
-  /** Metrics shown once for the portfolio and once for the benchmark */
-  readonly metrics = [
+  /** Metrics shown once for the portfolio and once for the benchmark; the API sends `percent` ones in percent */
+  readonly metrics: Metric[] = [
     {key: 'bmv', label: 'BMV', field: 'CompositeBeginMV', format: '.3-3', signed: false},
     {key: 'emv', label: 'EMV', field: 'CompositeEndMV', format: '.3-3', signed: false},
     {key: 'bodInflow', label: 'BOD Inflow', field: 'CompositeBODInflow', format: '.3-3', signed: false},
     {key: 'bodOutflow', label: 'BOD Outflow', field: 'CompositeBODOutflow', format: '.3-3', signed: false},
-    {key: 'weight', label: 'Weight', field: 'CompositeBeginWeight', format: '.3-3', signed: false},
-    {key: 'return', label: 'Return', field: 'BaseTotalRor', format: '.3-5', signed: true}
+    {key: 'weight', label: 'Weight', field: 'CompositeBeginWeight', format: '.3-3', signed: false, percent: true},
+    {key: 'return', label: 'Return', field: 'BaseTotalRor', format: '.3-5', signed: true, percent: true}
   ];
 
   readonly groupColumns = ['group-info', 'group-account', 'group-benchmark'];
@@ -443,10 +456,10 @@ export class PmaHistoryComponent {
     const columns: ExportColumn[] = [
       ...this.textFilterColumns.map(c => ({key: c.key, header: c.label, widthPx: this.columnWidths[c.key]})),
       ...this.metrics.map(m => ({
-        key: 'account-' + m.key, header: m.label, group: 'Portfolio', digits: m.format, widthPx: this.columnWidths['account-' + m.key]
+        key: 'account-' + m.key, header: m.label, group: 'Portfolio', digits: m.format, percent: m.percent, widthPx: this.columnWidths['account-' + m.key]
       })),
       ...this.metrics.map(m => ({
-        key: 'benchmark-' + m.key, header: m.label, group: 'Benchmark', digits: m.format, widthPx: this.columnWidths['benchmark-' + m.key]
+        key: 'benchmark-' + m.key, header: m.label, group: 'Benchmark', digits: m.format, percent: m.percent, widthPx: this.columnWidths['benchmark-' + m.key]
       }))
     ];
     const view = scope === 'view';
@@ -498,7 +511,10 @@ export class PmaHistoryComponent {
     return this.cell(node, column).value as string | number;
   }
 
-  /** Raw value (for sorting and numeric filters) and the text shown in the cell. */
+  /**
+   * Value (for sorting, numeric filters and export) and the text shown in the cell. Percent
+   * metrics are in percentage points, as shown, so a filter of >25 means above 25%.
+   */
   private cell(node: PmaHistoryRowView, column: string): { value: unknown; display: string } {
     const row = node.pmaExportRow as any;
     switch (column) {
@@ -516,7 +532,11 @@ export class PmaHistoryComponent {
     const metric = this.metrics.find(m => m.key === key);
     const values = group === 'account' ? row?.accountValues : row?.benchmarkValues;
     const value = metric ? values?.[metric.field] : null;
-    return {value, display: typeof value === 'number' ? formatNumber(value, this.locale, metric.format) : ''};
+    if (typeof value !== 'number') {
+      return {value, display: ''};
+    }
+    return {value, display: metric.percent ? formatPercent(value, this.locale, metric.format)
+        : formatNumber(value, this.locale, metric.format)};
   }
 
 

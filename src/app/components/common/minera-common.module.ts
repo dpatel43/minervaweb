@@ -23,12 +23,14 @@ import {TableExportMenuComponent} from './table-export/table-export-menu.compone
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatDividerModule} from "@angular/material/divider";
+import {PercentValuePipe} from './pipes/percent-value.pipe';
 
 const COMMON_COMPONENTS = [
   MinervaTableComponent,
   ColumnResizeDirective,
   FitGridHeightDirective,
-  TableExportMenuComponent
+  TableExportMenuComponent,
+  PercentValuePipe
 ];
 
 const MODULES = [

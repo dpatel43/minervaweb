@@ -35,6 +35,11 @@ export interface ExportColumn {
   group?: string;
   /** Angular DecimalPipe digits info used on screen, e.g. '.3-5'; marks the column as numeric */
   digits?: string;
+  /**
+   * Values are percentage points (1.5 = 1.5%). CSV keeps them as they are with "(%)" in the
+   * header; Excel stores the fraction (0.015) with a percent format.
+   */
+  percent?: boolean;
   /** Column width in screen pixels; converted to Excel character widths */
   widthPx?: number;
 }
@@ -113,11 +118,13 @@ export function isoDate(value: Date | string | null | undefined): string {
 
 /**
  * RFC 4180 CSV: a Level column first so the tree survives, one header row
- * ("Portfolio Return" when grouped), raw numbers with full precision.
+ * ("Portfolio Return" when grouped), raw numbers with full precision; percent columns
+ * keep percentage points and say "(%)" in the header.
  * Starts with a BOM so Excel reads it as UTF-8.
  */
 export function toCsv(table: TableExport): string {
-  const header = ['Level', ...table.columns.map(c => c.group ? `${c.group} ${c.header}` : c.header)];
+  const header = ['Level', ...table.columns.map(c =>
+    (c.group ? `${c.group} ${c.header}` : c.header) + (c.percent ? ' (%)' : ''))];
   const lines = [header];
   for (const row of table.rows) {
     lines.push([String(row.level), ...table.columns.map(c => csvValue(row.values[c.key]))]);
@@ -142,15 +149,16 @@ function csvField(text: string): string {
 
 // ---------------------------------------------------------------- Excel
 
-/** '.3-5' (DecimalPipe) -> '#,##0.000##' (Excel) */
-export function excelNumberFormat(digits: string | undefined): string {
+/** '.3-5' (DecimalPipe) -> '#,##0.000##' (Excel); with percent, '#,##0.000##%' */
+export function excelNumberFormat(digits: string | undefined, percent = false): string {
   const m = /^(\d*)\.(\d+)-(\d+)$/.exec(digits ?? '');
-  if (!m) {
-    return '#,##0.###';
+  let format = '#,##0.###';
+  if (m) {
+    const min = +m[2];
+    const max = Math.max(min, +m[3]);
+    format = max === 0 ? '#,##0' : '#,##0.' + '0'.repeat(min) + '#'.repeat(max - min);
   }
-  const min = +m[2];
-  const max = Math.max(min, +m[3]);
-  return max === 0 ? '#,##0' : '#,##0.' + '0'.repeat(min) + '#'.repeat(max - min);
+  return percent ? format + '%' : format;
 }
 
 const NAVY = 'FF1F3A5F';
@@ -218,14 +226,14 @@ export async function toXlsx(table: TableExport): Promise<Blob> {
 
   // Data rows; tree levels become Excel outline levels, so groups collapse in Excel too
   for (const row of table.rows) {
-    const r = sheet.addRow(columns.map(c => excelValue(row.values[c.key])));
+    const r = sheet.addRow(columns.map(c => excelValue(row.values[c.key], c.percent)));
     if (row.level > 0) {
       r.outlineLevel = Math.min(row.level, 7);
     }
     columns.forEach((c, i) => {
       const cell = r.getCell(i + 1);
       if (c.digits) {
-        cell.numFmt = excelNumberFormat(c.digits);
+        cell.numFmt = excelNumberFormat(c.digits, c.percent);
       }
       if (c.key === treeKey && row.level > 0) {
         cell.alignment = {indent: Math.min(row.level * 2, 15)};
@@ -251,11 +259,12 @@ export async function toXlsx(table: TableExport): Promise<Blob> {
   return new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 
-function excelValue(v: ExportValue): string | number | null {
+/** Percentage points become the fraction Excel's percent format expects (1.5 -> 0.015) */
+function excelValue(v: ExportValue, percent = false): string | number | null {
   if (v === undefined || v === null || (typeof v === 'number' && !isFinite(v))) {
     return null;
   }
-  return v;
+  return percent && typeof v === 'number' ? v / 100 : v;
 }
 
 /**

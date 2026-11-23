@@ -120,7 +120,7 @@
               <td *matCellDef="let data" mat-cell
                   [class.negative]="data.pmaExportRow.accountValues[period.key]?.BaseTotalRor < 0"
                   class="num">
-                {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | number:'.3-3' }}
+                {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | percentValue:'.3-3' }}
               </td>
             </ng-container>
 

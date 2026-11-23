@@ -70,6 +70,25 @@ describe('table export', () => {
     expect(excelNumberFormat('.3-3')).toBe('#,##0.000');
     expect(excelNumberFormat('.3-5')).toBe('#,##0.000##');
     expect(excelNumberFormat('.0-0')).toBe('#,##0');
+    expect(excelNumberFormat('.3-5', true)).toBe('#,##0.000##%');
+  });
+
+  it('keeps percentage points in CSV with (%) in the header, and stores fractions in Excel', async () => {
+    const t = table();
+    t.columns[1].percent = true;
+    const lines = toCsv(t).replace(/^\uFEFF/, '').trim().split('\r\n');
+    expect(lines[0]).toBe('Level,Name,Portfolio Return (%),Benchmark Return');
+    expect(lines[1]).toBe('0,Total,0.0123456,0.001');
+
+    const blob = await toXlsx(t);
+    // @ts-ignore: bundle without type definitions
+    const mod: any = await import('exceljs/dist/exceljs.min.js');
+    const wb = new (mod.default ?? mod).Workbook();
+    await wb.xlsx.load(await blob.arrayBuffer());
+    const cell = wb.worksheets[0].getRow(6).getCell(2);
+    expect(cell.value).toBeCloseTo(0.000123456, 12);
+    expect(cell.numFmt).toBe('#,##0.000##%');
+    expect(wb.worksheets[0].getRow(6).getCell(3).value).toBe(0.001);
   });
 
   it('builds safe file names and ISO dates', () => {

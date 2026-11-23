@@ -78,7 +78,8 @@ describe('PmaHistoryComponent', () => {
 
   describe('export', () => {
     const row = (id: number, parentId: number, name: string, ror: number, endDate: string) =>
-      ({id, parentId, name, startDate: endDate.slice(0, 8) + '01', endDate, accountValues: {BaseTotalRor: ror},
+      ({id, parentId, name, startDate: endDate.slice(0, 8) + '01', endDate,
+        accountValues: {BaseTotalRor: ror, CompositeBeginWeight: id === 0 ? 100 : 50},
         benchmarkValues: {BaseTotalRor: ror / 2}});
     const periodTree = (end: string, total: number, equities: number, cash: number) =>
       [row(0, -1, 'Total', total, end), row(1, 0, 'Equities', equities, end), row(2, 0, 'Cash', cash, end)];
@@ -99,6 +100,26 @@ describe('PmaHistoryComponent', () => {
       expect(t.columns.find(c => c.key === 'account-return')).toEqual(jasmine.objectContaining(
         {header: 'Return', group: 'Portfolio', digits: '.3-5'}));
       expect(t.columns.find(c => c.key === 'benchmark-return')?.group).toBe('Benchmark');
+    });
+
+    it('shows weight and return as sent with a % sign, and exports them in percentage points', () => {
+      const t = component.buildExport({scope: 'all', format: 'xlsx'});
+      expect(t.columns.find(c => c.key === 'account-weight')?.percent).toBeTrue();
+      expect(t.columns.find(c => c.key === 'account-return')?.percent).toBeTrue();
+      expect(t.columns.find(c => c.key === 'account-bmv')?.percent).toBeFalsy();
+      const cash = t.rows.find(r => r.values['name'] === 'Cash');
+      expect(cash.values['account-weight']).toBe(50);
+
+      fixture.detectChanges();
+      const text = fixture.nativeElement.querySelector('.mat-mdc-table')?.textContent ?? '';
+      expect(text).toContain('50.000%');
+      expect(text).toContain('100.000%');
+    });
+
+    it('filters weight in percentage points, as shown', () => {
+      component.onFilterChange('account-weight', '>60');
+      const view = component.buildExport({scope: 'view', format: 'csv'});
+      expect(view.rows.every(r => r.values['name'] === 'Total')).toBeTrue();
     });
 
     it('exports the current view with filters and sort, or all data without them', () => {
