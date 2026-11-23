@@ -24,3 +24,7 @@ Dockerfile
 Jenkinsfile
 README.md
 CLAUDE.md
+
+# CI-only files
+ci
+.npm

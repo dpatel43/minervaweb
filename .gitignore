@@ -43,3 +43,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# npm cache used by the Jenkins build
+/.npm

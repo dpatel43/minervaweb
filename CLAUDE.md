@@ -66,4 +66,4 @@ The app is being migrated gradually to a Bootstrap-first look. Global theming li
 
 ## Build/deploy
 
-`Dockerfile` does a multi-stage build (node 22 → nginx:alpine). `Jenkinsfile` builds the image and pushes it to Docker Hub as `dharmesh12/minervaweb:<build#>` and `:latest`.
+`Dockerfile` does a multi-stage build (node 22 → nginx:alpine). `Jenkinsfile` runs `npm ci`, `npm run build` and the headless unit tests inside `ci/Dockerfile` (node 22.12 + Chromium, since the Jenkins agent has only Docker), then builds the image and pushes it to Docker Hub as `dharmesh12/minervaweb:<build#>` and `:latest`.

@@ -2,13 +2,35 @@ pipeline {
     agent any
 
     environment {
-        // Replace 'your_dockerhub_username/your_repo_name' with your details
         DOCKER_IMAGE_NAME = 'dharmesh12/minervaweb'
-        // Reference the ID of the credentials you created in Jenkins
-        DOCKER_CRED_ID = 'jenkins_dockerhub'
+        // ID of the Docker Hub credentials in Jenkins
+        DOCKER_CRED_ID = 'Jenkins_Dockerhub'
+        // Keep npm's cache in the workspace: the CI container's user has no writable home
+        npm_config_cache = "${WORKSPACE}/.npm"
     }
 
     stages {
+        stage('build') {
+            steps {
+                script {
+                    // Node + Chromium image from ci/Dockerfile (Jenkins itself has neither)
+                    ciImage = docker.build('minervaweb-ci', 'ci')
+                    ciImage.inside {
+                        sh 'npm ci'
+                        sh 'npm run build'
+                    }
+                }
+            }
+        }
+        stage('test') {
+            steps {
+                script {
+                    ciImage.inside {
+                        sh 'npx ng test --watch=false --browsers=ChromeHeadlessCI'
+                    }
+                }
+            }
+        }
         stage('buildDockerImage') {
             steps {
                 script {
