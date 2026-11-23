@@ -154,9 +154,14 @@ text {
   fill: var(--bs-body-color);
 }
 
-/* Marks: the color carries the sign; text stays in ink colors */
+/* Marks: the color carries the sign; negative value labels are red too, like the tables */
 .bar {
   fill: var(--chart-positive);
+}
+
+/* negative values: red, in brackets (formatValue) like the tables */
+.value.negative {
+  fill: var(--chart-negative);
 }
 
 .bar.negative {

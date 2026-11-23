@@ -9,7 +9,7 @@ import {
   Component, ElementRef, EventEmitter, HostBinding, Inject, Input, LOCALE_ID, NgZone, OnChanges, OnDestroy, OnInit,
   Output
 } from '@angular/core';
-import {formatNumber} from '@angular/common';
+import {formatValue} from '../../../../common/pipes/number-format';
 
 export interface ChartPeriod {
   key: string;
@@ -220,7 +220,7 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private format(v: number | null): string {
-    return v === null ? 'No value' : formatNumber(v, this.locale, this.valueFormat) + '%';
+    return v === null ? 'No value' : formatValue(v, this.locale, this.valueFormat);
   }
 
   private buildPeriodChart() {
@@ -242,7 +242,7 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
     this.ticks = [];
     for (let v = lo; v <= hi + step / 2; v += step) {
       const rounded = Math.abs(v) < step / 1e6 ? 0 : v;
-      this.ticks.push({y: y(rounded), label: formatNumber(rounded, this.locale, decimalsFor(step)) + '%'});
+      this.ticks.push({y: y(rounded), label: formatValue(rounded, this.locale, decimalsFor(step))});
     }
 
     const band = (this.plotRight - this.plotLeft) / this.periods.length;

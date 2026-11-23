@@ -116,11 +116,11 @@
 
             <ng-container *ngFor="let period of periods" [matColumnDef]="period.key">
               <th *matHeaderCellDef [appColumnResize]="columnWidths" [columnKey]="period.key" (resized)="saveColumnWidths()"
-                  arrowPosition="before" class="num" mat-header-cell mat-sort-header>{{ period.label }}</th>
+                  arrowPosition="before" class="num" mat-header-cell mat-sort-header>{{ period.label }} (%)</th>
               <td *matCellDef="let data" mat-cell
                   [class.negative]="data.pmaExportRow.accountValues[period.key]?.BaseTotalRor < 0"
                   class="num">
-                {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | percentValue:'.3-3' }}
+                {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | numberValue:'.3-3' }}
               </td>
             </ng-container>
 

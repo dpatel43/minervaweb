@@ -67,13 +67,12 @@ describe('table export', () => {
   });
 
   it('maps DecimalPipe digits to Excel number formats', () => {
-    expect(excelNumberFormat('.3-3')).toBe('#,##0.000');
-    expect(excelNumberFormat('.3-5')).toBe('#,##0.000##');
-    expect(excelNumberFormat('.0-0')).toBe('#,##0');
-    expect(excelNumberFormat('.3-5', true)).toBe('#,##0.000##%');
+    expect(excelNumberFormat('.3-3')).toBe('#,##0.000;[Red](#,##0.000)');
+    expect(excelNumberFormat('.3-5')).toBe('#,##0.000##;[Red](#,##0.000##)');
+    expect(excelNumberFormat('.0-0')).toBe('#,##0;[Red](#,##0)');
   });
 
-  it('keeps percentage points in CSV with (%) in the header, and stores fractions in Excel', async () => {
+  it('puts (%) in the header of percent columns and leaves the values unchanged', async () => {
     const t = table();
     t.columns[1].percent = true;
     const lines = toCsv(t).replace(/^\uFEFF/, '').trim().split('\r\n');
@@ -86,8 +85,9 @@ describe('table export', () => {
     const wb = new (mod.default ?? mod).Workbook();
     await wb.xlsx.load(await blob.arrayBuffer());
     const cell = wb.worksheets[0].getRow(6).getCell(2);
-    expect(cell.value).toBeCloseTo(0.000123456, 12);
-    expect(cell.numFmt).toBe('#,##0.000##%');
+    expect(wb.worksheets[0].getRow(5).getCell(2).value).toBe('Return (%)');
+    expect(cell.value).toBe(0.0123456);
+    expect(cell.numFmt).toBe('#,##0.000##;[Red](#,##0.000##)');
     expect(wb.worksheets[0].getRow(6).getCell(3).value).toBe(0.001);
   });
 
@@ -118,7 +118,7 @@ describe('table export', () => {
 
     const total = ws.getRow(6);
     expect(total.getCell(2).value).toBe(0.0123456);
-    expect(total.getCell(2).numFmt).toBe('#,##0.000##');
+    expect(total.getCell(2).numFmt).toBe('#,##0.000##;[Red](#,##0.000##)');
     expect(total.getCell(1).font.bold).toBeTrue();
 
     const tech = ws.getRow(8);

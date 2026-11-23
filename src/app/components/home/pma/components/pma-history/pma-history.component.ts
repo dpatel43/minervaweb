@@ -6,8 +6,8 @@
  */
 
 import {Component, Inject, LOCALE_ID} from '@angular/core';
-import {formatDate, formatNumber} from '@angular/common';
-import {formatPercent} from '../../../../common/pipes/percent-value.pipe';
+import {formatDate} from '@angular/common';
+import {formatValue} from '../../../../common/pipes/number-format';
 import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
 import {PmaExportService} from '../../services/pmaexport/pma-export.service';
@@ -55,9 +55,7 @@ interface Metric {
   field: string;
   /** DecimalPipe digits info */
   format: string;
-  /** Negative values are shown in the negative colour */
-  signed: boolean;
-  /** Sent in percent by the API; shown with a % sign */
+  /** Sent in percent by the API; the header says "(%)", the values have no unit */
   percent?: boolean;
 }
 
@@ -108,14 +106,14 @@ export class PmaHistoryComponent {
   visibleRows = 0;
 
 
-  /** Metrics shown once for the portfolio and once for the benchmark; the API sends `percent` ones in percent */
+  /** Metrics shown once for the portfolio and once for the benchmark; `percent` ones arrive in percent and say "(%)" in the header */
   readonly metrics: Metric[] = [
-    {key: 'bmv', label: 'BMV', field: 'CompositeBeginMV', format: '.3-3', signed: false},
-    {key: 'emv', label: 'EMV', field: 'CompositeEndMV', format: '.3-3', signed: false},
-    {key: 'bodInflow', label: 'BOD Inflow', field: 'CompositeBODInflow', format: '.3-3', signed: false},
-    {key: 'bodOutflow', label: 'BOD Outflow', field: 'CompositeBODOutflow', format: '.3-3', signed: false},
-    {key: 'weight', label: 'Weight', field: 'CompositeBeginWeight', format: '.3-3', signed: false, percent: true},
-    {key: 'return', label: 'Return', field: 'BaseTotalRor', format: '.3-5', signed: true, percent: true}
+    {key: 'bmv', label: 'BMV', field: 'CompositeBeginMV', format: '.3-3'},
+    {key: 'emv', label: 'EMV', field: 'CompositeEndMV', format: '.3-3'},
+    {key: 'bodInflow', label: 'BOD Inflow', field: 'CompositeBODInflow', format: '.3-3'},
+    {key: 'bodOutflow', label: 'BOD Outflow', field: 'CompositeBODOutflow', format: '.3-3'},
+    {key: 'weight', label: 'Weight', field: 'CompositeBeginWeight', format: '.3-3', percent: true},
+    {key: 'return', label: 'Return', field: 'BaseTotalRor', format: '.3-5', percent: true}
   ];
 
   readonly groupColumns = ['group-info', 'group-account', 'group-benchmark'];
@@ -535,8 +533,7 @@ export class PmaHistoryComponent {
     if (typeof value !== 'number') {
       return {value, display: ''};
     }
-    return {value, display: metric.percent ? formatPercent(value, this.locale, metric.format)
-        : formatNumber(value, this.locale, metric.format)};
+    return {value, display: formatValue(value, this.locale, metric.format)};
   }
 
 

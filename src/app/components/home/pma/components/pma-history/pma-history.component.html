@@ -161,12 +161,11 @@
             <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'account-' + m.key">
               <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'account-' + m.key"
                   (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
-                  mat-sort-header>{{ m.label }}</th>
+                  mat-sort-header>{{ m.label }}{{ m.percent ? ' (%)' : '' }}</th>
               <td *matCellDef="let data" [class.group-start]="first"
-                  [class.negative]="m.signed && data.pmaExportRow.accountValues?.[m.field] < 0"
+                  [class.negative]="data.pmaExportRow.accountValues?.[m.field] < 0"
                   class="num" mat-cell>
-                <ng-container *ngIf="m.percent; else accountPlain">{{ data.pmaExportRow.accountValues?.[m.field] | percentValue:m.format }}</ng-container>
-                <ng-template #accountPlain>{{ data.pmaExportRow.accountValues?.[m.field] | number:m.format }}</ng-template>
+                {{ data.pmaExportRow.accountValues?.[m.field] | numberValue:m.format }}
               </td>
             </ng-container>
 
@@ -174,12 +173,11 @@
             <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'benchmark-' + m.key">
               <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'benchmark-' + m.key"
                   (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
-                  mat-sort-header>{{ m.label }}</th>
+                  mat-sort-header>{{ m.label }}{{ m.percent ? ' (%)' : '' }}</th>
               <td *matCellDef="let data" [class.group-start]="first"
-                  [class.negative]="m.signed && data.pmaExportRow.benchmarkValues?.[m.field] < 0"
+                  [class.negative]="data.pmaExportRow.benchmarkValues?.[m.field] < 0"
                   class="num" mat-cell>
-                <ng-container *ngIf="m.percent; else benchmarkPlain">{{ data.pmaExportRow.benchmarkValues?.[m.field] | percentValue:m.format }}</ng-container>
-                <ng-template #benchmarkPlain>{{ data.pmaExportRow.benchmarkValues?.[m.field] | number:m.format }}</ng-template>
+                {{ data.pmaExportRow.benchmarkValues?.[m.field] | numberValue:m.format }}
               </td>
             </ng-container>
 

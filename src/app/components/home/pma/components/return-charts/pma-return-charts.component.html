@@ -19,10 +19,10 @@
 <!-- Chart 1: returns by period for the selected row -->
 <section aria-labelledby="period-chart-title" class="chart">
   <header class="chart-header">
-    <h2 class="chart-title" id="period-chart-title">Returns by period</h2>
+    <h2 class="chart-title" id="period-chart-title">Returns by period (%)</h2>
   </header>
   <svg [attr.height]="periodHeight" [attr.viewBox]="'0 0 ' + width + ' ' + periodHeight" [attr.width]="width"
-       aria-label="Returns by period. Values are also in the table." class="chart-svg" role="group">
+       aria-label="Returns by period, in percent. Values are also in the table." class="chart-svg" role="group">
     <!-- recessive grid and tick labels -->
     <g class="grid">
       <ng-container *ngFor="let t of ticks">
@@ -42,8 +42,8 @@
       <!-- the whole band is the hit target, bigger than the mark -->
       <rect [attr.height]="periodHeight - 4" [attr.width]="c.bandWidth" [attr.x]="c.bandX" class="hit" y="2"></rect>
       <path *ngIf="c.path" [attr.d]="c.path" [class.negative]="c.negative" class="bar"></path>
-      <text *ngIf="c.showLabel" [attr.x]="c.bandX + c.bandWidth / 2" [attr.y]="c.labelY" class="value"
-            text-anchor="middle">{{ c.display }}</text>
+      <text *ngIf="c.showLabel" [attr.x]="c.bandX + c.bandWidth / 2" [attr.y]="c.labelY" [class.negative]="c.negative"
+            class="value" text-anchor="middle">{{ c.display }}</text>
       <ng-container *ngIf="c.showPeriod">
         <text *ngFor="let line of c.lines; let li = index" [attr.x]="c.bandX + c.bandWidth / 2"
               [attr.y]="periodHeight - 12 - (c.lines.length - 1 - li) * 12" class="period"
@@ -59,7 +59,7 @@
 <!-- Chart 2: segment returns for one period -->
 <section aria-labelledby="segment-chart-title" class="chart">
   <header class="chart-header">
-    <h2 class="chart-title" id="segment-chart-title">Segment returns, {{ periodLabel }}</h2>
+    <h2 class="chart-title" id="segment-chart-title">Segment returns (%), {{ periodLabel }}</h2>
     <div *ngIf="segmentContainer" [title]="segmentContainer.name" class="chart-subtitle">
       Within {{ segmentContainer.name }}
     </div>
@@ -70,7 +70,7 @@
        class="segment-scroll">
   <svg [attr.height]="segmentHeight"
        [attr.viewBox]="'0 0 ' + width + ' ' + segmentHeight" [attr.width]="width"
-       aria-label="Segment returns. Values are also in the table." class="chart-svg" role="group">
+       aria-label="Segment returns, in percent. Values are also in the table." class="chart-svg" role="group">
     <line [attr.x1]="segmentZeroX" [attr.x2]="segmentZeroX" [attr.y2]="segmentHeight - 2" class="baseline"
           y1="2"></line>
     <g *ngFor="let s of segments" (blur)="hideTooltip()" (focus)="showTooltip($event, s.name, s.display)"
@@ -80,7 +80,8 @@
       <rect [attr.width]="width" [attr.y]="s.y - 6" class="hit" height="26" x="0"></rect>
       <text [attr.y]="s.y + 10.5" class="segment-name" x="0">{{ s.shortName }}<title>{{ s.name }}</title></text>
       <path *ngIf="s.path" [attr.d]="s.path" [class.negative]="s.negative" class="bar"></path>
-      <text [attr.text-anchor]="s.labelAnchor" [attr.x]="s.labelX" [attr.y]="s.y + 10.5" class="value">{{ s.display }}</text>
+      <text [attr.text-anchor]="s.labelAnchor" [attr.x]="s.labelX" [attr.y]="s.y + 10.5" [class.negative]="s.negative"
+            class="value">{{ s.display }}</text>
     </g>
   </svg>
   </div>

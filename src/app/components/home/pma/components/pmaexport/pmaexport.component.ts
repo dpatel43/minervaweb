@@ -7,7 +7,7 @@
 
 import {Component, Inject, LOCALE_ID, OnInit} from '@angular/core';
 import {formatDate} from '@angular/common';
-import {formatPercent} from '../../../../common/pipes/percent-value.pipe';
+import {formatValue} from '../../../../common/pipes/number-format';
 import {MatTreeFlatDataSource, MatTreeFlattener} from "@angular/material/tree";
 import {FlatTreeControl} from "@angular/cdk/tree";
 import {PmaSummaryExportRequest} from "../../data/pmaexport/pma-summary-export-request";
@@ -400,7 +400,7 @@ export class PMAExportComponent implements OnInit {
     }
     // accountValues is typed as a Map but arrives as a plain JSON object
     const value = (node.pmaExportRow?.accountValues as any)?.[column]?.BaseTotalRor;
-    return {value, display: formatPercent(value, this.locale, '.3-3')};
+    return {value, display: formatValue(value, this.locale, '.3-3')};
   }
 
 

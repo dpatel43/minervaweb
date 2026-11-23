@@ -102,7 +102,7 @@ describe('PmaHistoryComponent', () => {
       expect(t.columns.find(c => c.key === 'benchmark-return')?.group).toBe('Benchmark');
     });
 
-    it('shows weight and return as sent with a % sign, and exports them in percentage points', () => {
+    it('labels weight and return with (%) and shows their values as sent', () => {
       const t = component.buildExport({scope: 'all', format: 'xlsx'});
       expect(t.columns.find(c => c.key === 'account-weight')?.percent).toBeTrue();
       expect(t.columns.find(c => c.key === 'account-return')?.percent).toBeTrue();
@@ -112,8 +112,17 @@ describe('PmaHistoryComponent', () => {
 
       fixture.detectChanges();
       const text = fixture.nativeElement.querySelector('.mat-mdc-table')?.textContent ?? '';
-      expect(text).toContain('50.000%');
-      expect(text).toContain('100.000%');
+      expect(text).toContain('Weight (%)');
+      expect(text).toContain('Return (%)');
+      expect(text).toContain('50.000');
+      expect(text).not.toContain('50.000%');
+    });
+
+    it('shows negative numbers in red brackets', () => {
+      fixture.detectChanges();
+      const negatives = [...fixture.nativeElement.querySelectorAll('td.negative')].map((td: HTMLElement) => td.textContent.trim());
+      expect(negatives).toContain('(0.020)');   // Total return for 2026-09-30
+      expect(negatives.every(t => /^\(.*\)$/.test(t))).toBeTrue();
     });
 
     it('filters weight in percentage points, as shown', () => {
