@@ -1,0 +1,129 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {provideRouter} from '@angular/router';
+import {provideNoopAnimations} from '@angular/platform-browser/animations';
+import {of} from 'rxjs';
+import {AttributionComponent} from './attribution.component';
+import {MineraCommonModule} from '../../../../common/minera-common.module';
+import {HomeModule} from '../../../home.module';
+import {apiTestingProviders} from '../../../../../testing/test-providers';
+import {PmaExportService} from '../../services/pmaexport/pma-export.service';
+
+describe('AttributionComponent', () => {
+  let component: AttributionComponent;
+  let fixture: ComponentFixture<AttributionComponent>;
+
+  const effects = (alloc: number, sel: number, inter: number) =>
+    ({AllocationEffect: alloc, SelectionEffect: sel, InteractionEffect: inter, TotalEffect: alloc + sel + inter});
+  const response = {
+    exportRows: {
+      'C_2025-11-20_2026-11-20': [
+        {id: 0, parentId: -1, name: 'Total', startDate: '2025-11-20', endDate: '2026-11-20',
+          accountValues: {BaseTotalRor: 2.7554, ExcessReturn: -3.8393, ActiveWeight: 0, ...effects(-1.324, -1.732, -0.783)},
+          benchmarkValues: {BaseTotalRor: 6.5947}},
+        {id: 1, parentId: 0, name: 'Information Technology', startDate: '2025-11-20', endDate: '2026-11-20',
+          accountValues: {BaseTotalRor: 5.1, ExcessReturn: -8.2, ActiveWeight: 5.67, ...effects(-0.033, -2.917, -0.542)},
+          benchmarkValues: {BaseTotalRor: 13.3}},
+        {id: 2, parentId: 0, name: 'Energy', startDate: '2025-11-20', endDate: '2026-11-20',
+          accountValues: {BaseTotalRor: 9.0, ExcessReturn: 1.0, ActiveWeight: -2.39, ...effects(-0.623, 0.025, -0.019)},
+          benchmarkValues: {BaseTotalRor: 8.0}}
+      ]
+    }
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [AttributionComponent],
+      imports: [MineraCommonModule, HomeModule],
+      providers: [...apiTestingProviders, provideRouter([]), provideNoopAnimations()]
+    }).compileComponents();
+
+    localStorage.removeItem('minerva.attribution.percentDecimals');
+    fixture = TestBed.createComponent(AttributionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  const fill = (accountId: number, benchmarkId: number) => component.exportForm.patchValue({
+    account: {id: accountId, displayValue: 'Growth Equity'}, benchmark: {id: benchmarkId, displayValue: 'S&P 500'},
+    profile: {id: 3, displayValue: 'Gics with Country'}, start: new Date(2025, 10, 20), end: new Date(2026, 10, 20)
+  });
+
+  it('asks for a benchmark that is not the account', () => {
+    fill(100010, 100010);
+    expect(component.canRetrieve).toBeTrue();
+    expect(component.sameAccount).toBeTrue();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('button[type=submit]').disabled).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('Choose a benchmark other than the account.');
+  });
+
+  it('requests the account against the chosen benchmark, cumulative by default', () => {
+    const service = TestBed.inject(PmaExportService);
+    const spy = spyOn(service, 'runPmaHistory').and.returnValue(of(response as any));
+    fill(100010, 100009);
+    component.onSubmit();
+
+    const request = spy.calls.mostRecent().args[0];
+    expect(request.accountId).toBe(100010);
+    expect(request.benchmarkId).toBe(100009);
+    expect(request.profileId).toBe(3);
+    expect(request.period).toBe('C');
+  });
+
+  it('shows returns and effects, the benchmark return from the benchmark values', () => {
+    (component as any).convertResponse(response);
+    fixture.detectChanges();
+
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('tr.mat-mdc-row')) as HTMLElement[];
+    expect(rows.length).toBe(3);
+    const cells = (row: HTMLElement) => Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim());
+    const it = cells(rows[1]);
+    expect(it[0]).toBe('Information Technology');
+    // Portfolio, Benchmark, Excess | Active Weight, Allocation, Selection, Interaction, Total
+    expect(component.showDates).toBeFalse();
+    expect(it.slice(1)).toEqual(['5.1000', '13.3000', '(8.2000)', '5.6700', '(0.0330)', '(2.9170)', '(0.5420)', '(3.4920)']);
+    expect(rows[1].querySelectorAll('td.negative').length).toBe(5);
+    expect(component.groups).toEqual(['Return', 'Attribution']);
+  });
+
+  it('shows the dates when the report has several periods', () => {
+    const month = (end: string) => response.exportRows['C_2025-11-20_2026-11-20'].map(r => ({...r, endDate: end}));
+    (component as any).convertResponse({exportRows: {'M_1': month('2025-11-30'), 'M_2': month('2025-12-31')}});
+    fixture.detectChanges();
+
+    expect(component.showDates).toBeTrue();
+    expect(component.displayedColumns.slice(0, 3)).toEqual(['name', 'startDate', 'endDate']);
+    expect(component.totalRows).toBe(6);
+  });
+
+  it('sorts segments by total effect among siblings', () => {
+    (component as any).convertResponse(response);
+    component.onSortChange({active: 'totalEffect', direction: 'asc'});
+    fixture.detectChanges();
+
+    const names = Array.from(fixture.nativeElement.querySelectorAll('tr.mat-mdc-row td:first-child'))
+      .map((td: HTMLElement) => td.textContent.trim());
+    expect(names).toEqual(['Total', 'Information Technology', 'Energy']);
+  });
+
+  it('exports every column with its group, in percent', () => {
+    (component as any).convertResponse(response);
+    fill(100010, 100009);
+    const table = component.buildExport({scope: 'all', format: 'csv'} as any);
+
+    expect(table.title).toBe('Performance Attribution');
+    expect(table.columns.map(c => c.header)).toEqual(
+      ['Name', 'Portfolio', 'Benchmark', 'Excess', 'Active Weight', 'Allocation', 'Selection', 'Interaction', 'Total']);
+    expect(table.columns.slice(1).every(c => c.percent)).toBeTrue();
+    expect(table.details).toContain(['Benchmark', 'S&P 500']);
+    expect(table.details).toContain(['Period', 'Cumulative']);
+    expect(table.rows.length).toBe(3);
+  });
+});

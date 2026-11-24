@@ -12,6 +12,7 @@ import {FieldComponent} from "./components/field/field.component";
 import {ProcessorComponent} from "./components/processor/processor.component";
 import {PMAExportComponent} from "./components/pmaexport/pmaexport.component";
 import {PmaHistoryComponent} from "./components/pma-history/pma-history.component";
+import {AttributionComponent} from './components/attribution/attribution.component';
 import {ProfileComponent} from "./components/profile/profile.component";
 import {DashboardComponent} from "./components/dashboard/dashboard.component";
 
@@ -24,6 +25,7 @@ let routes: Routes = [
       {path: 'processor', component: ProcessorComponent},
       {path: 'pmaexport', component: PMAExportComponent},
       {path: 'pma-history', component: PmaHistoryComponent},
+      {path: 'attribution', component: AttributionComponent},
       {path: 'profile', component: ProfileComponent},
       {path: 'dashboard', component: DashboardComponent}
     ]
