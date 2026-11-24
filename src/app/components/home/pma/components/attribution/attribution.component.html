@@ -111,7 +111,7 @@
       <div *ngIf="dataSource" class="report-split">
         <div class="report-split-table">
           <table (matSortChange)="onSortChange($event)" [dataSource]="dataSource" [matSortActive]="sort.active"
-                 [matSortDirection]="sort.direction" [style.width.px]="totalWidth"
+                 [matSortDirection]="sort.direction" [style.minWidth.px]="totalWidth"
                  class="grid-lines resizable-table" mat-table matSort>
             <colgroup>
               <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">

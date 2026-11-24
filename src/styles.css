@@ -958,7 +958,9 @@ th.num .mat-sort-header-content {
 /* Resizable table: fixed layout, widths come from <colgroup> (see ColumnResizeDirective) */
 .mat-mdc-table.resizable-table {
   table-layout: fixed;
-  min-width: 0;
+  /* Fill the card: when the set column widths (bound as min-width) leave room, the fixed layout shares it out
+     in proportion to them; when they don't fit, the table keeps them and scrolls */
+  width: 100%;
 }
 
 .mat-mdc-table.resizable-table .mat-mdc-header-cell,
