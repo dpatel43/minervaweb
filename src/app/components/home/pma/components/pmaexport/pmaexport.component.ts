@@ -65,6 +65,8 @@ export class PMAExportComponent implements OnInit {
     {key: '1D', label: '1 Day'},
     {key: 'MTD', label: 'Month to Date'},
     {key: '1M', label: 'Last Month'},
+    {key: '1MP', label: 'Previous Month'},
+    {key: 'QTD', label: 'Quarter to Date'},
     {key: '3M', label: 'Last 3 Months'},
     {key: 'YTD', label: 'Year to Date'},
     {key: 'ITD', label: 'Inception to Date'}
