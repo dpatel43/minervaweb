@@ -26,11 +26,11 @@ describe('AttributionComponent', () => {
     exportRows: {
       'C_2025-11-20_2026-11-20': [
         {id: 0, parentId: -1, name: 'Total', startDate: '2025-11-20', endDate: '2026-11-20',
-          accountValues: {BaseTotalRor: 2.7554, ExcessReturn: -3.8393, ActiveWeight: 0, ...effects(-1.324, -1.732, -0.783)},
-          benchmarkValues: {BaseTotalRor: 6.5947}},
+          accountValues: {BaseTotalRor: 2.7554, CompositeBeginWeight: 100, ExcessReturn: -3.8393, ActiveWeight: 0, ...effects(-1.324, -1.732, -0.783)},
+          benchmarkValues: {BaseTotalRor: 6.5947, CompositeBeginWeight: 100}},
         {id: 1, parentId: 0, name: 'Information Technology', startDate: '2025-11-20', endDate: '2026-11-20',
-          accountValues: {BaseTotalRor: 5.1, ExcessReturn: -8.2, ActiveWeight: 5.67, ...effects(-0.033, -2.917, -0.542)},
-          benchmarkValues: {BaseTotalRor: 13.3}},
+          accountValues: {BaseTotalRor: 5.1, CompositeBeginWeight: 40.61, ExcessReturn: -8.2, ActiveWeight: 5.89, ...effects(-0.033, -2.917, -0.542)},
+          benchmarkValues: {BaseTotalRor: 13.3, CompositeBeginWeight: 34.72}},
         {id: 2, parentId: 0, name: 'Energy', startDate: '2025-11-20', endDate: '2026-11-20',
           accountValues: {BaseTotalRor: 9.0, ExcessReturn: 1.0, ActiveWeight: -2.39, ...effects(-0.623, 0.025, -0.019)},
           benchmarkValues: {BaseTotalRor: 8.0}}
@@ -87,11 +87,12 @@ describe('AttributionComponent', () => {
     const cells = (row: HTMLElement) => Array.from(row.querySelectorAll('td')).map(td => td.textContent.trim());
     const it = cells(rows[1]);
     expect(it[0]).toBe('Information Technology');
-    // Portfolio, Benchmark, Excess | Active Weight, Allocation, Selection, Interaction, Total
+    // Weight: Portfolio, Benchmark, Active | Return: Portfolio, Benchmark, Excess | Allocation, Selection, Interaction, Total
     expect(component.showDates).toBeFalse();
-    expect(it.slice(1)).toEqual(['5.1000', '13.3000', '(8.2000)', '5.6700', '(0.0330)', '(2.9170)', '(0.5420)', '(3.4920)']);
+    expect(it.slice(1)).toEqual(['40.6100', '34.7200', '5.8900', '5.1000', '13.3000', '(8.2000)',
+      '(0.0330)', '(2.9170)', '(0.5420)', '(3.4920)']);
     expect(rows[1].querySelectorAll('td.negative').length).toBe(5);
-    expect(component.groups).toEqual(['Return', 'Attribution']);
+    expect(component.groups).toEqual(['Weight', 'Return', 'Attribution']);
   });
 
   it('shows the dates when the report has several periods', () => {
@@ -129,8 +130,8 @@ describe('AttributionComponent', () => {
     fixture.detectChanges();
     const energy = Array.from(fixture.nativeElement.querySelectorAll('tr.mat-mdc-row'))[2] as HTMLElement;
     const cells = Array.from(energy.querySelectorAll('td')).map(td => td.textContent.trim());
-    expect(cells[3]).toBe('0.0000');   // Excess
-    expect(cells[6]).toBe('0.0000');   // Selection
+    expect(cells[6]).toBe('0.0000');   // Excess
+    expect(cells[8]).toBe('0.0000');   // Selection
     // active weight, allocation, interaction and total; not the zeroed excess and selection
     expect(energy.querySelectorAll('td.negative').length).toBe(4);
   });
@@ -152,7 +153,8 @@ describe('AttributionComponent', () => {
 
     expect(table.title).toBe('Performance Attribution');
     expect(table.columns.map(c => c.header)).toEqual(
-      ['Name', 'Portfolio', 'Benchmark', 'Excess', 'Active Weight', 'Allocation', 'Selection', 'Interaction', 'Total']);
+      ['Name', 'Portfolio', 'Benchmark', 'Active', 'Portfolio', 'Benchmark', 'Excess', 'Allocation', 'Selection', 'Interaction', 'Total']);
+    expect(table.columns.slice(1, 4).every(c => c.group === 'Weight')).toBeTrue();
     expect(table.columns.slice(1).every(c => c.percent)).toBeTrue();
     expect(table.details).toContain(['Benchmark', 'S&P 500']);
     expect(table.details).toContain(['Period', 'Cumulative']);

@@ -78,10 +78,13 @@ export class AttributionComponent {
   ];
 
   readonly valueColumns: ValueColumn[] = [
+    // Begin weights as stored; Active is their difference for a single day and the period's average otherwise
+    {key: 'accountWeight', label: 'Portfolio', group: 'Weight', source: 'account', field: 'CompositeBeginWeight'},
+    {key: 'benchmarkWeight', label: 'Benchmark', group: 'Weight', source: 'benchmark', field: 'CompositeBeginWeight'},
+    {key: 'activeWeight', label: 'Active', group: 'Weight', source: 'account', field: 'ActiveWeight'},
     {key: 'accountReturn', label: 'Portfolio', group: 'Return', source: 'account', field: 'BaseTotalRor'},
     {key: 'benchmarkReturn', label: 'Benchmark', group: 'Return', source: 'benchmark', field: 'BaseTotalRor'},
     {key: 'excessReturn', label: 'Excess', group: 'Return', source: 'account', field: 'ExcessReturn'},
-    {key: 'activeWeight', label: 'Active Weight', group: 'Attribution', source: 'account', field: 'ActiveWeight'},
     {key: 'allocation', label: 'Allocation', group: 'Attribution', source: 'account', field: 'AllocationEffect'},
     {key: 'selection', label: 'Selection', group: 'Attribution', source: 'account', field: 'SelectionEffect'},
     {key: 'interaction', label: 'Interaction', group: 'Attribution', source: 'account', field: 'InteractionEffect'},
@@ -336,7 +339,7 @@ export class AttributionComponent {
   private loadColumnWidths(): ColumnWidths {
     const widths: ColumnWidths = {name: 220, startDate: 100, endDate: 100};
     for (const c of this.valueColumns) {
-      widths[c.key] = c.key === 'activeWeight' ? 104 : 92;
+      widths[c.key] = 92;
     }
     try {
       const saved = JSON.parse(localStorage.getItem(COLUMN_WIDTHS_KEY) ?? '{}');
