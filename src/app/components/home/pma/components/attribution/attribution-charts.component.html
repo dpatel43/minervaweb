@@ -1,0 +1,82 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<div class="charts-toolbar">
+  <i aria-hidden="true" class="bi bi-bar-chart-line"></i>
+  <span [title]="row?.name" class="charts-toolbar-title">Charts for <strong>{{ row?.name }}</strong>
+    <ng-container *ngIf="periodLabel">, {{ periodLabel }}</ng-container></span>
+  <button (click)="toggleCollapsed()" [attr.aria-expanded]="!collapsed" class="btn btn-sm btn-outline-secondary charts-toggle"
+          type="button">
+    <i [class.bi-chevron-down]="collapsed" [class.bi-chevron-up]="!collapsed" aria-hidden="true" class="bi"></i>
+    {{ collapsed ? 'Show charts' : 'Hide charts' }}
+  </button>
+</div>
+
+<div *ngIf="!collapsed" class="charts-grid">
+  <!-- Chart 1: the selected row's effects -->
+  <section aria-labelledby="effects-chart-title" class="chart">
+    <header class="chart-header">
+      <h2 class="chart-title" id="effects-chart-title">Attribution effects (%)</h2>
+      <div [title]="row?.name" class="chart-subtitle">{{ row?.name }}</div>
+    </header>
+    <svg [attr.height]="effectsHeight" [attr.viewBox]="'0 0 ' + width + ' ' + effectsHeight" [attr.width]="width"
+         aria-label="Allocation, selection and interaction effects and their total, in percent. Values are also in the table."
+         class="chart-svg" role="group">
+      <line [attr.x1]="effectsZeroX" [attr.x2]="effectsZeroX" [attr.y2]="effectsHeight - 2" class="baseline" y1="2"></line>
+      <line [attr.x2]="width" [attr.y1]="totalRuleY" [attr.y2]="totalRuleY" class="total-rule" x1="0"></line>
+      <g *ngFor="let e of effects" (blur)="hideTooltip()" (focus)="showTooltip($event, e)" (mouseleave)="hideTooltip()"
+         (mousemove)="showTooltip($event, e)" [attr.aria-label]="e.name + ': ' + e.display" [class.emphasised]="e.emphasised"
+         class="segment" role="img" tabindex="0">
+        <rect [attr.width]="width" [attr.y]="e.y - 6" class="hit" height="26" x="0"></rect>
+        <text [attr.y]="e.y + 10.5" class="segment-name" x="0">{{ e.name }}</text>
+        <path *ngIf="e.path" [attr.d]="e.path" [class.negative]="e.negative" class="bar"></path>
+        <text [attr.text-anchor]="e.labelAnchor" [attr.x]="e.labelX" [attr.y]="e.y + 10.5" [class.negative]="e.negative"
+              class="value">{{ e.display }}</text>
+      </g>
+    </svg>
+    <p class="chart-note">Total = allocation + selection + interaction.</p>
+  </section>
+
+  <!-- Chart 2: total effect of the segments -->
+  <section aria-labelledby="segment-effect-chart-title" class="chart">
+    <header class="chart-header">
+      <h2 class="chart-title" id="segment-effect-chart-title">Total effect by segment (%)</h2>
+      <div *ngIf="segmentContainer" [title]="segmentContainer.name" class="chart-subtitle">
+        Within {{ segmentContainer.name }}
+      </div>
+    </header>
+    <div *ngIf="segments.length; else noSegments" [style.max-height.px]="sideBySide ? segmentMaxHeight : null"
+         class="segment-scroll">
+      <svg [attr.height]="segmentHeight" [attr.viewBox]="'0 0 ' + width + ' ' + segmentHeight" [attr.width]="width"
+           aria-label="Total attribution effect of each segment, in percent. Values are also in the table."
+           class="chart-svg" role="group">
+        <line [attr.x1]="segmentZeroX" [attr.x2]="segmentZeroX" [attr.y2]="segmentHeight - 2" class="baseline"
+              y1="2"></line>
+        <g *ngFor="let s of segments" (blur)="hideTooltip()" (click)="selectSegment(s)" (focus)="showTooltip($event, s)"
+           (keydown.enter)="selectSegment(s)" (keydown.space)="selectSegment(s); $event.preventDefault()"
+           (mouseleave)="hideTooltip()" (mousemove)="showTooltip($event, s)"
+           [attr.aria-label]="s.name + ': total effect ' + s.display + '. ' + s.detail + '. Select to chart it'"
+           [class.emphasised]="s.emphasised" class="segment selectable" role="button" tabindex="0">
+          <rect [attr.width]="width" [attr.y]="s.y - 6" class="hit" height="26" x="0"></rect>
+          <text [attr.y]="s.y + 10.5" class="segment-name" x="0">{{ s.shortName }}<title>{{ s.name }}</title></text>
+          <path *ngIf="s.path" [attr.d]="s.path" [class.negative]="s.negative" class="bar"></path>
+          <text [attr.text-anchor]="s.labelAnchor" [attr.x]="s.labelX" [attr.y]="s.y + 10.5"
+                [class.negative]="s.negative" class="value">{{ s.display }}</text>
+        </g>
+      </svg>
+    </div>
+    <ng-template #noSegments>
+      <p class="chart-empty">{{ row?.name }} has no segments to compare.</p>
+    </ng-template>
+  </section>
+</div>
+
+<div *ngIf="tooltip" [style.left.px]="tooltip.x" [style.top.px]="tooltip.y" class="chart-tooltip" role="presentation">
+  <strong>{{ tooltip.value }}</strong>
+  <span>{{ tooltip.label }}</span>
+  <span class="tooltip-detail">{{ tooltip.detail }}</span>
+</div>

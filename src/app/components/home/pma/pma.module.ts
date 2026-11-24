@@ -26,10 +26,11 @@ import {PMAExportComponent} from './components/pmaexport/pmaexport.component';
 import {PmaReturnChartsComponent} from './components/return-charts/pma-return-charts.component';
 import {PmaHistoryComponent} from './components/pma-history//pma-history.component';
 import {AttributionComponent} from './components/attribution/attribution.component';
+import {AttributionChartsComponent} from './components/attribution/attribution-charts.component';
 import {AgGridAngular} from "@ag-grid-community/angular";
 
 @NgModule({
-  declarations: [PmaComponent, FieldComponent, FieldListComponent, FieldDetailComponent, TimeFieldComponent, TransactionFieldComponent, ProcessorComponent, PMAExportComponent, PmaReturnChartsComponent, PmaHistoryComponent, AttributionComponent],
+  declarations: [PmaComponent, FieldComponent, FieldListComponent, FieldDetailComponent, TimeFieldComponent, TransactionFieldComponent, ProcessorComponent, PMAExportComponent, PmaReturnChartsComponent, PmaHistoryComponent, AttributionComponent, AttributionChartsComponent],
   imports: [
     MineraCommonModule,
     PmaRoutingModule,

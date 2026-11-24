@@ -118,6 +118,13 @@ export class AttributionComponent {
   private viewTree: AttributionRowView[] = [];
   /** Rows the user collapsed by hand (by row key); kept across sort/filter */
   private collapsedKeys = new Set<string>();
+  /** Every row of the source tree by key, with its parent (null for a period's Total) */
+  private nodesByKey = new Map<string, { node: AttributionRowView; parent: AttributionRowView | null }>();
+
+  /** Row charted above the table (by key); the latest period's Total by default */
+  selectedKey: string = null;
+  selectedNode: AttributionRowView = null;
+  selectedParent: AttributionRowView = null;
 
   columnFilters: Record<string, string> = {};
   readonly columnFiltersEnabled = true;
@@ -242,6 +249,13 @@ export class AttributionComponent {
     }
     this.sourceTree = roots;
     this.totalRows = countTree(roots);
+    this.nodesByKey.clear();
+    const index = (node: AttributionRowView, parent: AttributionRowView | null) => {
+      this.nodesByKey.set(node.key, {node, parent});
+      node.children?.forEach(child => index(child, node));
+    };
+    roots.forEach(root => index(root, null));
+    this.selectByKey(roots[roots.length - 1]?.key ?? null);
     this.showDates = roots.length > 1;
     if (!this.showDates) {
       // Filters and sort on the date columns would act on columns no longer shown
@@ -254,6 +268,25 @@ export class AttributionComponent {
     this.updateColumns();
     this.collapsedKeys.clear();
     this.applyView();
+  }
+
+  /** Clicking a table row charts it */
+  selectRow(node: FlatNode) {
+    this.selectByKey(node.key);
+  }
+
+  /** A segment picked in the charts becomes the charted row, highlighted in the table */
+  selectByKey(key: string | null) {
+    const found = key == null ? null : this.nodesByKey.get(key);
+    this.selectedKey = found ? key : null;
+    this.selectedNode = found?.node ?? null;
+    this.selectedParent = found?.parent ?? null;
+  }
+
+  /** The charted row's period, for the chart titles; empty when the report has a single period */
+  get chartPeriodLabel(): string {
+    const row = this.selectedNode?.row;
+    return this.showDates && row?.startDate && row?.endDate ? `${row.startDate} – ${row.endDate}` : '';
   }
 
   toggle(node: FlatNode) {
@@ -422,7 +455,7 @@ export class AttributionComponent {
   value(row: PmaHistoryRow, column: ValueColumn): number {
     const values = (column.source === 'account' ? row?.accountValues : row?.benchmarkValues) as any;
     const value = values?.[column.field];
-    return typeof value === 'number' ? value : null;
+    return typeof value === 'number' ? snapZero(value) : null;
   }
 
   /** Value (for sorting, filters and export) and the text shown in the cell */
@@ -441,4 +474,13 @@ export class AttributionComponent {
     const value = valueColumn ? this.value(node.row, valueColumn) : null;
     return {value, display: value == null ? '' : formatValue(value, this.locale, this.percentDigits)};
   }
+}
+
+/**
+ * A stock held on both sides has the same return in each, so its excess return and selection effect are 0, but
+ * arrive as floating-point leftovers (compounding a year of daily returns leaves up to about 1e-8 percentage
+ * points), which would show as a red (0.0000). Anything under a millionth of a percentage point is 0.
+ */
+export function snapZero(v: number): number {
+  return Math.abs(v) < 1e-6 ? 0 : v;
 }

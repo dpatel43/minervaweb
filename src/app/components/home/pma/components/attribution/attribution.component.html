@@ -70,7 +70,13 @@
     </div>
   </form>
 
-  <div class="card results-card">
+  <aside *ngIf="dataSource && selectedNode" aria-label="Charts for the selected row" class="card charts-card">
+    <app-attribution-charts (segmentSelect)="selectByKey($event)" [parent]="selectedParent"
+                            [periodLabel]="chartPeriodLabel" [row]="selectedNode"
+                            [valueFormat]="percentDigits"></app-attribution-charts>
+  </aside>
+
+  <div class="card results-card with-charts">
     <div *ngIf="dataSource" class="card-header results-toolbar table-toolbar">
       <span class="text-body-secondary">
         <ng-container *ngIf="hasFilters; else allRows">{{ visibleRows }} of {{ totalRows }} rows</ng-container>
@@ -183,8 +189,10 @@
                 No rows match the column filters.
               </td>
             </tr>
-            <tr *matRowDef="let row; columns: displayedColumns;" [class.filter-context]="row.filterContext"
-                [class.tree-parent]="row.expandable" [class.tree-root]="row.level === 0" mat-row></tr>
+            <tr (click)="selectRow(row)" *matRowDef="let row; columns: displayedColumns;"
+                [attr.aria-selected]="row.key === selectedKey" [class.filter-context]="row.filterContext"
+                [class.row-selected]="row.key === selectedKey" [class.tree-parent]="row.expandable"
+                [class.tree-root]="row.level === 0" class="chart-source-row" mat-row></tr>
           </table>
         </div>
       </div>

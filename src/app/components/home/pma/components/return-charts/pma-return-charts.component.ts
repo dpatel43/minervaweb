@@ -347,7 +347,7 @@ function decimalsFor(step: number): string {
   return `1.${d}-${d}`;
 }
 
-function truncate(s: string, n: number): string {
+export function truncate(s: string, n: number): string {
   return s.length > n ? s.slice(0, n - 1) + '…' : s;
 }
 
@@ -364,7 +364,7 @@ function verticalBar(x: number, w: number, y0: number, y1: number): string {
 }
 
 /** Bar from the baseline x0 to x1, rounded at the data end only */
-function horizontalBar(x0: number, x1: number, y: number, h: number): string {
+export function horizontalBar(x0: number, x1: number, y: number, h: number): string {
   const w = Math.abs(x1 - x0);
   if (w < 0.5) {
     return '';

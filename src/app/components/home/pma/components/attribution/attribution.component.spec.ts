@@ -10,6 +10,7 @@ import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
 import {of} from 'rxjs';
 import {AttributionComponent} from './attribution.component';
+import {AttributionChartsComponent} from './attribution-charts.component';
 import {MineraCommonModule} from '../../../../common/minera-common.module';
 import {HomeModule} from '../../../home.module';
 import {apiTestingProviders} from '../../../../../testing/test-providers';
@@ -39,7 +40,7 @@ describe('AttributionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AttributionComponent],
+      declarations: [AttributionComponent, AttributionChartsComponent],
       imports: [MineraCommonModule, HomeModule],
       providers: [...apiTestingProviders, provideRouter([]), provideNoopAnimations()]
     }).compileComponents();
@@ -101,6 +102,37 @@ describe('AttributionComponent', () => {
     expect(component.showDates).toBeTrue();
     expect(component.displayedColumns.slice(0, 3)).toEqual(['name', 'startDate', 'endDate']);
     expect(component.totalRows).toBe(6);
+  });
+
+  it('charts the Total by default, and a clicked row or a segment picked in the charts', () => {
+    (component as any).convertResponse(response);
+    fixture.detectChanges();
+    expect(component.selectedNode.name).toBe('Total');
+    expect(fixture.nativeElement.querySelector('app-attribution-charts')).toBeTruthy();
+    expect(component.chartPeriodLabel).toBe('');
+
+    const energy = Array.from(fixture.nativeElement.querySelectorAll('tr.mat-mdc-row'))[2] as HTMLElement;
+    energy.click();
+    fixture.detectChanges();
+    expect(component.selectedNode.name).toBe('Energy');
+    expect(component.selectedParent.name).toBe('Total');
+    expect(energy.classList).toContain('row-selected');
+
+    component.selectByKey('C_2025-11-20_2026-11-20|1');
+    expect(component.selectedNode.name).toBe('Information Technology');
+  });
+
+  it('shows floating-point leftovers as 0, not a red (0.0000)', () => {
+    const rows = response.exportRows['C_2025-11-20_2026-11-20'].map(r => r.id === 2
+      ? {...r, accountValues: {...r.accountValues, ExcessReturn: -1.05e-8, SelectionEffect: -2e-17}} : r);
+    (component as any).convertResponse({exportRows: {'C': rows}});
+    fixture.detectChanges();
+    const energy = Array.from(fixture.nativeElement.querySelectorAll('tr.mat-mdc-row'))[2] as HTMLElement;
+    const cells = Array.from(energy.querySelectorAll('td')).map(td => td.textContent.trim());
+    expect(cells[3]).toBe('0.0000');   // Excess
+    expect(cells[6]).toBe('0.0000');   // Selection
+    // active weight, allocation, interaction and total; not the zeroed excess and selection
+    expect(energy.querySelectorAll('td.negative').length).toBe(4);
   });
 
   it('sorts segments by total effect among siblings', () => {
