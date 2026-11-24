@@ -625,7 +625,8 @@ app-root {
 }
 
 /* Checkboxes, radios and switches: app colour instead of Bootstrap's default blue */
-.form-check-input:checked {
+.form-check-input:checked,
+.form-check-input[type=checkbox]:indeterminate {
   background-color: var(--app-navy);
   border-color: var(--app-navy);
 }
@@ -1139,8 +1140,9 @@ body.col-resizing * {
   color: var(--app-navy);
 }
 
-/* Active filter count, on the icon's top-right corner */
-.filter-toggle .filter-count {
+/* Active filter count (and hidden-column count), on the icon's top-right corner */
+.filter-toggle .filter-count,
+.columns-toggle .filter-count {
   position: absolute;
   top: -5px;
   right: -5px;

@@ -11,3 +11,73 @@
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/* Column chooser: fixed columns on top, Portfolio and Benchmark side by side */
+.column-menu {
+  padding: 4px 0;
+  min-width: 260px;
+}
+
+.column-menu .dropdown-header {
+  padding: 4px 12px;
+  color: var(--app-muted);
+  font-weight: 600;
+}
+
+.column-menu-fixed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 14px;
+  padding: 0 12px 6px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.column-menu-groups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+  padding: 6px 12px;
+}
+
+.column-menu-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.column-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  margin: 0;
+  padding-left: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.column-option .form-check-input {
+  float: none;
+  margin: 0;
+}
+
+.column-option:has(.form-check-input:disabled) {
+  cursor: default;
+}
+
+.column-option .form-check-input:disabled ~ .form-check-label {
+  opacity: .65;
+}
+
+.column-group-option {
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.column-menu-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 8px 0;
+  border-top: 1px solid var(--app-border);
+}

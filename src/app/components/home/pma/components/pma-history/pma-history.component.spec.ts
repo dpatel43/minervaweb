@@ -29,6 +29,7 @@ describe('PmaHistoryComponent', () => {
       .compileComponents();
 
     localStorage.removeItem('minerva.pmaHistory.percentDecimals');
+    localStorage.removeItem('minerva.pmaHistory.hiddenColumns');
     fixture = TestBed.createComponent(PmaHistoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -197,6 +198,97 @@ describe('PmaHistoryComponent', () => {
       expect(all.rows[0].values['endDate']).toBe('2026-08-31');
       expect(all.rows.some(r => r.context)).toBeFalse();
       expect(all.details.find(d => d[0] === 'Rows')[1]).toBe('All data, 6 rows');
+    });
+  });
+
+  describe('column chooser', () => {
+    const row = (id: number, parentId: number, name: string, ror: number) =>
+      ({id, parentId, name, startDate: '2026-09-01', endDate: '2026-09-30',
+        accountValues: {BaseTotalRor: ror, CompositeEndMV: 100 * (id + 1)}, benchmarkValues: {BaseTotalRor: ror / 2}});
+
+    beforeEach(() => {
+      (component as any).convertResponse({
+        exportRows: {'2026-09-30': [row(0, -1, 'Total', 0.01), row(1, 0, 'Equities', 0.02), row(2, 0, 'Cash', -0.001)]}
+      });
+      fixture.detectChanges();
+    });
+
+    const headers = () => [...fixture.nativeElement.querySelectorAll('tr.mat-mdc-header-row:not(.group-header-row):not(.filter-row) th')]
+      .map((th: HTMLElement) => th.textContent.trim());
+    const groupHeaders = () => [...fixture.nativeElement.querySelectorAll('tr.group-header-row th.group-header')]
+      .map((th: HTMLElement) => [th.textContent.trim(), th.getAttribute('colspan')]);
+    const metric = (key: string) => component.metrics.find(m => m.key === key);
+
+    it('shows every column by default, with Name, Start Date and End Date always shown', () => {
+      expect(component.displayedColumns.length).toBe(3 + 2 * component.metrics.length);
+      const fixed = [...fixture.nativeElement.querySelectorAll('.column-menu-fixed input')] as HTMLInputElement[];
+      expect(fixed.length).toBe(3);
+      expect(fixed.every(i => i.checked && i.disabled)).toBeTrue();
+    });
+
+    it('hides a metric in one group only, and narrows that group header', () => {
+      component.toggleColumn('benchmark', metric('emv'));
+      fixture.detectChanges();
+
+      expect(component.displayedColumns).toContain('account-emv');
+      expect(component.displayedColumns).not.toContain('benchmark-emv');
+      expect(component.filterColumns).not.toContain('filter-benchmark-emv');
+      expect(groupHeaders()).toEqual([['Portfolio', '7'], ['Benchmark', '6']]);
+      expect(headers().filter(h => h === 'EMV').length).toBe(1);
+    });
+
+    it('hides a whole group, dropping its header, and shows it again from the group checkbox', () => {
+      component.toggleGroup('benchmark');
+      fixture.detectChanges();
+      expect(component.displayedColumns.some(c => c.startsWith('benchmark-'))).toBeFalse();
+      expect(groupHeaders()).toEqual([['Portfolio', '7']]);
+      expect(component.groupVisibility('benchmark')).toBe('none');
+
+      component.toggleColumn('benchmark', metric('return'));
+      expect(component.groupVisibility('benchmark')).toBe('some');
+      component.toggleGroup('benchmark');
+      expect(component.groupVisibility('benchmark')).toBe('all');
+    });
+
+    it('moves the group border to the first shown metric', () => {
+      component.toggleColumn('account', metric('bmv'));
+      fixture.detectChanges();
+      const start = fixture.nativeElement.querySelector('tr.mat-mdc-header-row:not(.group-header-row):not(.filter-row) th.group-start');
+      expect(start.textContent.trim()).toBe('EMV');
+    });
+
+    it('exports only the shown columns', () => {
+      component.toggleColumn('account', metric('bmv'));
+      component.toggleGroup('benchmark');
+      const t = component.buildExport({scope: 'all', format: 'csv'});
+      expect(t.columns.map(c => c.key)).toEqual(component.displayedColumns);
+      expect(t.columns.map(c => c.key).slice(0, 4)).toEqual(['name', 'startDate', 'endDate', 'account-emv']);
+      expect(t.columns.some(c => c.group === 'Benchmark')).toBeFalse();
+    });
+
+    it('drops the filter and sort of a column it hides', () => {
+      component.onFilterChange('account-return', '>0.015');
+      component.onSortChange({active: 'account-return', direction: 'desc'});
+      expect(component.visibleRows).toBe(2);
+
+      component.toggleColumn('account', metric('return'));
+      expect(component.columnFilters['account-return']).toBeUndefined();
+      expect(component.sort.direction).toBe('');
+      expect(component.visibleRows).toBe(3);
+    });
+
+    it('remembers hidden columns, ignoring unknown ones, and Show all brings them back', () => {
+      component.toggleColumn('account', metric('weight'));
+      expect(JSON.parse(localStorage.getItem('minerva.pmaHistory.hiddenColumns'))).toEqual(['account-weight']);
+
+      localStorage.setItem('minerva.pmaHistory.hiddenColumns', JSON.stringify(['benchmark-bmv', 'account-gone']));
+      const again = TestBed.createComponent(PmaHistoryComponent).componentInstance;
+      expect(again.hiddenColumnCount).toBe(1);
+      expect(again.displayedColumns).not.toContain('benchmark-bmv');
+
+      again.showAllColumns();
+      expect(again.hiddenColumnCount).toBe(0);
+      expect(again.displayedColumns.length).toBe(3 + 2 * again.metrics.length);
     });
   });
 });

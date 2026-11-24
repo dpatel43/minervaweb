@@ -29,6 +29,7 @@ import {
 const COLUMN_WIDTHS_KEY = 'minerva.pmaHistory.columnWidths';
 const SHOW_FILTERS_KEY = 'minerva.pmaHistory.showColumnFilters';
 const PERCENT_DECIMALS_KEY = 'minerva.pmaHistory.percentDecimals';
+const HIDDEN_COLUMNS_KEY = 'minerva.pmaHistory.hiddenColumns';
 
 
 interface PmaHistoryRowView extends FilterContext {
@@ -50,6 +51,8 @@ interface ExampleFlatNode {
   level: number;
 }
 
+
+export type MetricGroup = 'account' | 'benchmark';
 
 interface Metric {
   key: string;
@@ -141,20 +144,31 @@ export class PmaHistoryComponent {
     }
   }
 
-  readonly groupColumns = ['group-info', 'group-account', 'group-benchmark'];
-
-  /** Non-metric columns, filtered by text */
+  /** Non-metric columns, filtered by text. Always shown: the column chooser can't hide them. */
   readonly textFilterColumns = [
     {key: 'name', label: 'Name'},
     {key: 'startDate', label: 'Start Date'},
     {key: 'endDate', label: 'End Date'}
   ];
 
-  readonly displayedColumns: string[] = [
-    'name', 'startDate', 'endDate',
-    ...this.metrics.map(m => 'account-' + m.key),
-    ...this.metrics.map(m => 'benchmark-' + m.key)
+  /** Metric groups as the column chooser and the group header row show them */
+  readonly metricGroups: { key: MetricGroup; label: string }[] = [
+    {key: 'account', label: 'Portfolio'},
+    {key: 'benchmark', label: 'Benchmark'}
   ];
+
+  /**
+   * Metric columns ('account-bmv', ...) the user hid with the column chooser, remembered per browser.
+   * Hidden rather than shown columns are saved, so a metric added later shows up by default.
+   */
+  hiddenColumns = this.loadHiddenColumns();
+
+  /** Rebuilt by updateColumns() whenever hiddenColumns changes */
+  displayedColumns: string[] = [];
+  filterColumns: string[] = [];
+  groupColumns: string[] = [];
+  /** Shown metrics per group, in metric order */
+  visibleMetrics: Record<MetricGroup, Metric[]> = {account: [], benchmark: []};
 
   loading = false;
   exporting = false;
@@ -197,9 +211,106 @@ export class PmaHistoryComponent {
 
   exportForm: FormGroup;
 
-  /** Ids of the filter row's cells, one per displayed column */
-  get filterColumns(): string[] {
-    return this.displayedColumns.map(c => 'filter-' + c);
+  private updateColumns() {
+    for (const g of this.metricGroups) {
+      this.visibleMetrics[g.key] = this.metrics.filter(m => !this.hiddenColumns.has(g.key + '-' + m.key));
+    }
+    this.displayedColumns = [
+      ...this.textFilterColumns.map(c => c.key),
+      ...this.shownMetricColumns().map(c => c.column)
+    ];
+    this.filterColumns = this.displayedColumns.map(c => 'filter-' + c);
+    // A group with no columns left loses its header cell, which would otherwise span nothing
+    this.groupColumns = ['group-info', ...this.metricGroups.filter(g => this.visibleMetrics[g.key].length).map(g => 'group-' + g.key)];
+  }
+
+  /** Shown metric columns in table order: the group's metrics, Portfolio then Benchmark */
+  private shownMetricColumns(): { column: string; group: { key: MetricGroup; label: string }; metric: Metric }[] {
+    const columns = [];
+    for (const group of this.metricGroups) {
+      for (const metric of this.visibleMetrics[group.key]) {
+        columns.push({column: group.key + '-' + metric.key, group, metric});
+      }
+    }
+    return columns;
+  }
+
+  /** The group's first shown metric draws the group's left border */
+  isGroupStart(group: MetricGroup, metric: Metric): boolean {
+    return this.visibleMetrics[group][0] === metric;
+  }
+
+  isColumnVisible(group: MetricGroup, metric: Metric): boolean {
+    return !this.hiddenColumns.has(group + '-' + metric.key);
+  }
+
+  get hiddenColumnCount(): number {
+    return this.hiddenColumns.size;
+  }
+
+  /** 'all', 'none' or 'some' of the group's metrics shown: drives the group checkbox (checked, empty, indeterminate) */
+  groupVisibility(group: MetricGroup): 'all' | 'none' | 'some' {
+    const shown = this.visibleMetrics[group].length;
+    return shown === this.metrics.length ? 'all' : shown === 0 ? 'none' : 'some';
+  }
+
+  toggleColumn(group: MetricGroup, metric: Metric) {
+    this.setColumnsVisible([group + '-' + metric.key], !this.isColumnVisible(group, metric));
+  }
+
+  /** The group checkbox shows every metric of the group, or hides them all when they're all shown */
+  toggleGroup(group: MetricGroup) {
+    this.setColumnsVisible(this.metrics.map(m => group + '-' + m.key), this.groupVisibility(group) !== 'all');
+  }
+
+  showAllColumns() {
+    this.setColumnsVisible([...this.hiddenColumns], true);
+  }
+
+  private setColumnsVisible(columns: string[], visible: boolean) {
+    const hidden = new Set(this.hiddenColumns);
+    columns.forEach(c => visible ? hidden.delete(c) : hidden.add(c));
+    this.hiddenColumns = hidden;
+    this.updateColumns();
+    this.saveHiddenColumns();
+
+    // A hidden column shouldn't keep filtering or ordering rows the user can't see it act on
+    let viewChanged = false;
+    const filters = {...this.columnFilters};
+    for (const c of hidden) {
+      if (filters[c]?.trim()) {
+        viewChanged = true;
+      }
+      delete filters[c];
+    }
+    this.columnFilters = filters;
+    if (hidden.has(this.sort.active)) {
+      this.sort = {active: '', direction: ''};
+      viewChanged = true;
+    }
+    if (viewChanged) {
+      this.applyView();
+    }
+  }
+
+  private loadHiddenColumns(): Set<string> {
+    const known = new Set<string>();
+    this.metricGroups.forEach(g => this.metrics.forEach(m => known.add(g.key + '-' + m.key)));
+    try {
+      const saved = JSON.parse(localStorage.getItem(HIDDEN_COLUMNS_KEY) ?? '[]');
+      // Drop anything that's no longer a metric column (renamed or removed metrics)
+      return new Set(Array.isArray(saved) ? saved.filter(c => known.has(c)) : []);
+    } catch {
+      return new Set();
+    }
+  }
+
+  private saveHiddenColumns() {
+    try {
+      localStorage.setItem(HIDDEN_COLUMNS_KEY, JSON.stringify([...this.hiddenColumns]));
+    } catch {
+      // storage unavailable: the choice just won't be remembered
+    }
   }
 
   get hasFilters(): boolean {
@@ -220,6 +331,7 @@ export class PmaHistoryComponent {
       filterSecurities: [false],
       period: new UntypedFormControl()// Initial state of the checkbox
     });
+    this.updateColumns();
   }
 
   ngOnInit(): void {
@@ -474,15 +586,13 @@ export class PmaHistoryComponent {
     }
   }
 
-  /** The table as an export: all columns, with rows from the current view or from everything retrieved. */
+  /** The table as an export: the shown columns, with rows from the current view or from everything retrieved. */
   buildExport({scope}: ExportRequest): TableExport {
     const columns: ExportColumn[] = [
       ...this.textFilterColumns.map(c => ({key: c.key, header: c.label, widthPx: this.columnWidths[c.key]})),
-      ...this.metrics.map(m => ({
-        key: 'account-' + m.key, header: m.label, group: 'Portfolio', digits: this.digitsFor(m), percent: m.percent, widthPx: this.columnWidths['account-' + m.key]
-      })),
-      ...this.metrics.map(m => ({
-        key: 'benchmark-' + m.key, header: m.label, group: 'Benchmark', digits: this.digitsFor(m), percent: m.percent, widthPx: this.columnWidths['benchmark-' + m.key]
+      ...this.shownMetricColumns().map(({column, group, metric}) => ({
+        key: column, header: metric.label, group: group.label, digits: this.digitsFor(metric), percent: metric.percent,
+        widthPx: this.columnWidths[column]
       }))
     ];
     const view = scope === 'view';

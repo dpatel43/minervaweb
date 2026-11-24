@@ -86,6 +86,44 @@
           <i [class.bi-funnel-fill]="hasFilters" [class.bi-funnel]="!hasFilters" aria-hidden="true" class="bi"></i>
           <span *ngIf="hasFilters" aria-hidden="true" class="filter-count">{{ activeFilterCount }}</span>
         </button>
+        <div class="dropdown column-chooser">
+          <button [attr.aria-label]="'Choose columns' + (hiddenColumnCount ? ', ' + hiddenColumnCount + ' hidden' : '')"
+                  [title]="hiddenColumnCount ? 'Choose columns (' + hiddenColumnCount + ' hidden)' : 'Choose columns'"
+                  aria-expanded="false" class="btn btn-sm toolbar-icon-btn columns-toggle" data-bs-auto-close="outside"
+                  data-bs-toggle="dropdown" type="button">
+            <i aria-hidden="true" class="bi bi-layout-three-columns"></i>
+            <span *ngIf="hiddenColumnCount" aria-hidden="true" class="filter-count">{{ hiddenColumnCount }}</span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end column-menu">
+            <h6 class="dropdown-header">Always shown</h6>
+            <div class="column-menu-fixed">
+              <label *ngFor="let c of textFilterColumns" class="form-check column-option" title="Always shown">
+                <input checked class="form-check-input" disabled type="checkbox">
+                <span class="form-check-label">{{ c.label }}</span>
+              </label>
+            </div>
+            <div class="column-menu-groups">
+              <fieldset *ngFor="let g of metricGroups" class="column-menu-group">
+                <legend class="visually-hidden">{{ g.label }} columns</legend>
+                <label class="form-check column-option column-group-option">
+                  <input (change)="toggleGroup(g.key)" [checked]="groupVisibility(g.key) === 'all'"
+                         [indeterminate]="groupVisibility(g.key) === 'some'" class="form-check-input" type="checkbox">
+                  <span class="form-check-label">{{ g.label }}</span>
+                </label>
+                <label *ngFor="let m of metrics" class="form-check column-option">
+                  <input (change)="toggleColumn(g.key, m)" [attr.aria-label]="g.label + ' ' + m.label"
+                         [checked]="isColumnVisible(g.key, m)" class="form-check-input" type="checkbox">
+                  <span class="form-check-label">{{ m.label }}{{ m.percent ? ' (%)' : '' }}</span>
+                </label>
+              </fieldset>
+            </div>
+            <div class="column-menu-footer">
+              <button (click)="showAllColumns()" [disabled]="!hiddenColumnCount" class="btn btn-sm btn-link" type="button">
+                Show all
+              </button>
+            </div>
+          </div>
+        </div>
         <span aria-hidden="true" class="toolbar-divider"></span>
         <app-decimals-control (decimalsChange)="onPercentDecimalsChange($event)" [decimals]="percentDecimals"
                               label="Percentage columns"></app-decimals-control>
@@ -102,7 +140,7 @@
       <div *ngIf="dataSource" class="report-split">
         <div class="report-split-table">
           <table [dataSource]="dataSource" [style.width.px]="totalWidth"
-                 (matSortChange)="onSortChange($event)" class="grid-lines resizable-table" mat-table matSort>
+                 (matSortChange)="onSortChange($event)" [matSortActive]="sort.active" [matSortDirection]="sort.direction" class="grid-lines resizable-table" mat-table matSort>
             <colgroup>
               <col *ngFor="let c of displayedColumns" [style.width.px]="columnWidths[c]">
             </colgroup>
@@ -110,11 +148,8 @@
             <ng-container matColumnDef="group-info">
               <th *matHeaderCellDef [attr.colspan]="3" mat-header-cell></th>
             </ng-container>
-            <ng-container matColumnDef="group-account">
-              <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Portfolio</th>
-            </ng-container>
-            <ng-container matColumnDef="group-benchmark">
-              <th *matHeaderCellDef [attr.colspan]="metrics.length" class="group-header" mat-header-cell>Benchmark</th>
+            <ng-container *ngFor="let g of metricGroups" [matColumnDef]="'group-' + g.key">
+              <th *matHeaderCellDef [attr.colspan]="visibleMetrics[g.key].length" class="group-header" mat-header-cell>{{ g.label }}</th>
             </ng-container>
 
             <!-- Row info -->
@@ -148,12 +183,12 @@
                        class="form-control column-filter" placeholder="Filter">
               </th>
             </ng-container>
-            <ng-container *ngFor="let group of ['account', 'benchmark']">
-              <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'filter-' + group + '-' + m.key">
-                <th *matHeaderCellDef [class.group-start]="first" class="filter-cell" mat-header-cell>
-                  <input #f (input)="onFilterChange(group + '-' + m.key, f.value)"
-                         (keydown.escape)="f.value = ''; onFilterChange(group + '-' + m.key, '')"
-                         [attr.aria-label]="'Filter ' + group + ' ' + m.label" [value]="columnFilters[group + '-' + m.key] ?? ''"
+            <ng-container *ngFor="let g of metricGroups">
+              <ng-container *ngFor="let m of metrics" [matColumnDef]="'filter-' + g.key + '-' + m.key">
+                <th *matHeaderCellDef [class.group-start]="isGroupStart(g.key, m)" class="filter-cell" mat-header-cell>
+                  <input #f (input)="onFilterChange(g.key + '-' + m.key, f.value)"
+                         (keydown.escape)="f.value = ''; onFilterChange(g.key + '-' + m.key, '')"
+                         [attr.aria-label]="'Filter ' + g.label + ' ' + m.label" [value]="columnFilters[g.key + '-' + m.key] ?? ''"
                          class="form-control column-filter num" placeholder="e.g. >0"
                          title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
                 </th>
@@ -161,11 +196,11 @@
             </ng-container>
 
             <!-- Portfolio metrics -->
-            <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'account-' + m.key">
-              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'account-' + m.key"
+            <ng-container *ngFor="let m of metrics" [matColumnDef]="'account-' + m.key">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="isGroupStart('account', m)" [columnKey]="'account-' + m.key"
                   (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
                   mat-sort-header>{{ m.label }}{{ m.percent ? ' (%)' : '' }}</th>
-              <td *matCellDef="let data" [class.group-start]="first"
+              <td *matCellDef="let data" [class.group-start]="isGroupStart('account', m)"
                   [class.negative]="data.pmaExportRow.accountValues?.[m.field] < 0"
                   class="num" mat-cell>
                 {{ data.pmaExportRow.accountValues?.[m.field] | numberValue:digitsFor(m) }}
@@ -173,11 +208,11 @@
             </ng-container>
 
             <!-- Benchmark metrics -->
-            <ng-container *ngFor="let m of metrics; let first = first" [matColumnDef]="'benchmark-' + m.key">
-              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="first" [columnKey]="'benchmark-' + m.key"
+            <ng-container *ngFor="let m of metrics" [matColumnDef]="'benchmark-' + m.key">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [class.group-start]="isGroupStart('benchmark', m)" [columnKey]="'benchmark-' + m.key"
                   (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
                   mat-sort-header>{{ m.label }}{{ m.percent ? ' (%)' : '' }}</th>
-              <td *matCellDef="let data" [class.group-start]="first"
+              <td *matCellDef="let data" [class.group-start]="isGroupStart('benchmark', m)"
                   [class.negative]="data.pmaExportRow.benchmarkValues?.[m.field] < 0"
                   class="num" mat-cell>
                 {{ data.pmaExportRow.benchmarkValues?.[m.field] | numberValue:digitsFor(m) }}
