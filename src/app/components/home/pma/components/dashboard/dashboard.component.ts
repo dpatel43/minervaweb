@@ -19,6 +19,8 @@ import {PmaHistoryResponse} from '../../data/pma-history/pma-history-response';
 import {PmaHistoryRow} from '../../data/pma-history/pma-history-row';
 import {BarItem} from './diverging-bars.component';
 import {CumulativePoint} from './cumulative-return-chart.component';
+import {AssistantContextService} from '../../../../../services/ai/assistant-context.service';
+import {ActivatedRoute} from '@angular/router';
 
 /** Values on the dashboard: percentages, two decimals */
 export const DASHBOARD_DIGITS = '.2-2';
@@ -75,9 +77,12 @@ export class DashboardComponent {
   contributors: BarItem[] = [];
   detractors: BarItem[] = [];
   weights: BarItem[] = [];
+  /** This screen's tab, for sharing its selection with the app-level AI assistant */
+  private readonly tabUrl: string;
 
   constructor(private pmaExportService: PmaExportService, private formBuilder: FormBuilder,
-              @Inject(LOCALE_ID) private locale: string) {
+              @Inject(LOCALE_ID) private locale: string, private assistant: AssistantContextService, route: ActivatedRoute) {
+    this.tabUrl = AssistantContextService.tabUrlOf(route);
     this.exportForm = this.formBuilder.group({
       account: new UntypedFormControl(),
       benchmark: new UntypedFormControl(),
@@ -146,6 +151,10 @@ export class DashboardComponent {
             start: formatDate(start, 'mediumDate', this.locale),
             end: formatDate(end, 'mediumDate', this.locale)
           };
+          this.assistant.publish('dashboard', {
+            accountId: account.id, benchmarkId: benchmark.id, profileId: profile.id,
+            startDate: formatDate(start, 'yyyy-MM-dd', this.locale), endDate: formatDate(end, 'yyyy-MM-dd', this.locale)
+          }, this.tabUrl);
           this.buildTiles(s);
           this.buildWeights(s);
           this.buildChart(daily);

@@ -13,6 +13,9 @@ import {ModuleGroupVO} from "./admin/data/moduleGroupVO";
 import {ModuleVO} from "./admin/data/moduleVO";
 import {ColDef} from "@ag-grid-community/core";
 import {AppTab, TabService} from "../../services/tabs/tab.service";
+import {AssistantContextService, ScreenContext} from '../../services/ai/assistant-context.service';
+import {combineLatest, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -41,6 +44,10 @@ export class HomeComponent implements OnInit {
   ]
 
   loggedIn: boolean;
+  /** The app-level AI assistant panel; it follows the active tab and keeps its answer while closed */
+  assistantOpen = false;
+  readonly assistantContext$: Observable<ScreenContext | null>;
+  readonly activeTitle$: Observable<string>;
   moduleGroups: ModuleGroupVO[];
   modules: ModuleVO[] = [];
   username = '';
@@ -51,8 +58,12 @@ export class HomeComponent implements OnInit {
     private route: ActivatedRoute,
     private authenticationService: AuthenticationService,
     private userService: UserService,
-    public tabService: TabService
+    public tabService: TabService,
+    private assistantContexts: AssistantContextService
   ) {
+    this.assistantContext$ = this.assistantContexts.active$;
+    this.activeTitle$ = combineLatest([this.tabService.tabs$, this.tabService.activeUrl$]).pipe(
+      map(([tabs, url]) => tabs.find(t => t.url === url)?.title ?? ''));
     this.authenticationService.isLoggedIn.subscribe(x => this.loggedIn = x);
   }
 

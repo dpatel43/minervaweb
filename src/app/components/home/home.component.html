@@ -32,6 +32,10 @@
       </ul>
       <div class="app-navbar-end">
         <app-nav-search (selected)="openModule($event)" [moduleGroups]="moduleGroups"></app-nav-search>
+        <button (click)="assistantOpen = !assistantOpen" [attr.aria-expanded]="assistantOpen" aria-controls="assistant-panel"
+                class="btn app-ai-toggle" [class.active]="assistantOpen" title="Ask AI about the current screen" type="button">
+          <i aria-hidden="true" class="bi bi-stars"></i><span>Ask AI</span>
+        </button>
         <div *ngIf="username" [title]="'Signed in as ' + username" class="app-user">
           <span aria-hidden="true" class="app-user-avatar">{{ userInitials }}</span>
           <span class="app-user-name">{{ username }}</span>
@@ -59,5 +63,30 @@
 <div class="main-content" role="tabpanel">
   <router-outlet></router-outlet>
 </div>
+
+<!-- App-level AI assistant: follows the active tab; stays alive while closed so its answer is kept -->
+<aside [attr.aria-hidden]="!assistantOpen" [attr.inert]="assistantOpen ? null : ''" [class.open]="assistantOpen"
+       aria-labelledby="assistant-panel-title" class="assistant-panel" id="assistant-panel">
+  <header class="assistant-panel-header">
+    <i aria-hidden="true" class="bi bi-stars"></i>
+    <h2 class="assistant-panel-title" id="assistant-panel-title">Ask AI</h2>
+    <button (click)="assistantOpen = false" aria-label="Close the assistant" class="btn btn-sm assistant-panel-close" type="button">
+      <i aria-hidden="true" class="bi bi-x-lg"></i>
+    </button>
+  </header>
+  <div class="assistant-panel-body">
+    <ng-container *ngIf="assistantContext$ | async as ctx; else nothingShared">
+      <div class="assistant-panel-scope">About <strong>{{ activeTitle$ | async }}</strong>, as retrieved</div>
+      <app-assistant [context]="ctx.context" [screen]="ctx.screen"></app-assistant>
+    </ng-container>
+    <ng-template #nothingShared>
+      <p class="assistant-panel-empty">
+        <strong>{{ (activeTitle$ | async) || 'This screen' }}</strong> doesn't share data with the assistant.
+        It works on the Dashboard and the Performance Summary, History and Attribution reports once you select Retrieve.
+      </p>
+    </ng-template>
+    <p class="assistant-panel-note">Only sector-level percentages are used, with account names hidden.</p>
+  </div>
+</aside>
 
 

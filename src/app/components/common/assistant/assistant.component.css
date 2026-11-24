@@ -1,0 +1,67 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+:host {
+  display: block;
+}
+
+/* One suggested question per line, full width, so long labels read in the narrow panel */
+.assistant-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.assistant-prompt {
+  text-align: left;
+}
+
+.assistant-question {
+  margin-top: 8px;
+}
+
+.assistant-answer {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--app-border);
+}
+
+.assistant-asked {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--app-muted);
+}
+
+.assistant-answer p {
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.assistant-warning {
+  margin: 4px 0 8px;
+  color: var(--app-negative);
+}
+
+.assistant-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.assistant-facts {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--app-muted);
+}
+
+.assistant-facts li + li {
+  margin-top: 3px;
+}

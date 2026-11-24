@@ -24,6 +24,9 @@ import {PmaExportService} from '../../services/pmaexport/pma-export.service';
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
 import {PmaHistoryResponse} from '../../data/pma-history/pma-history-response';
 import {PmaHistoryRow} from '../../data/pma-history/pma-history-row';
+import {AiContext} from '../../../../../services/ai/ai.service';
+import {AssistantContextService} from '../../../../../services/ai/assistant-context.service';
+import {ActivatedRoute} from '@angular/router';
 
 const COLUMN_WIDTHS_KEY = 'minerva.attribution.columnWidths';
 const SHOW_FILTERS_KEY = 'minerva.attribution.showColumnFilters';
@@ -128,6 +131,11 @@ export class AttributionComponent {
   selectedKey: string = null;
   selectedNode: AttributionRowView = null;
   selectedParent: AttributionRowView = null;
+  /** What the AI assistant explains: the retrieved selection plus the selected row's path of names */
+  aiContext: AiContext = {};
+  private retrieved: AiContext = {};
+  /** This screen's tab, for sharing its selection with the app-level AI assistant */
+  private readonly tabUrl: string;
 
   columnFilters: Record<string, string> = {};
   readonly columnFiltersEnabled = true;
@@ -145,7 +153,8 @@ export class AttributionComponent {
   columnWidths: ColumnWidths = this.loadColumnWidths();
 
   constructor(private pmaExportService: PmaExportService, private formBuilder: FormBuilder,
-              @Inject(LOCALE_ID) private locale: string) {
+              @Inject(LOCALE_ID) private locale: string, private assistant: AssistantContextService, route: ActivatedRoute) {
+    this.tabUrl = AssistantContextService.tabUrlOf(route);
     this.exportForm = this.formBuilder.group({
       account: new UntypedFormControl(),
       benchmark: new UntypedFormControl(),
@@ -219,7 +228,13 @@ export class AttributionComponent {
     this.loading = true;
     this.pmaExportService.runPmaHistory(request)
       .pipe(finalize(() => this.loading = false))
-      .subscribe((data: PmaHistoryResponse) => this.convertResponse(data));
+      .subscribe((data: PmaHistoryResponse) => {
+        this.retrieved = {
+          accountId: account.id, benchmarkId: benchmark.id, profileId: profile.id,
+          startDate: formatDate(start, 'yyyy-MM-dd', this.locale), endDate: formatDate(end, 'yyyy-MM-dd', this.locale)
+        };
+        this.convertResponse(data);
+      });
   }
 
   private transformer = (node: AttributionRowView, level: number): FlatNode => ({
@@ -284,6 +299,19 @@ export class AttributionComponent {
     this.selectedKey = found ? key : null;
     this.selectedNode = found?.node ?? null;
     this.selectedParent = found?.parent ?? null;
+    this.aiContext = {...this.retrieved, segmentPath: this.pathTo(this.selectedKey)};
+    this.assistant.publish('attribution', this.aiContext, this.tabUrl);
+  }
+
+  /** Names from the period's Total down to the row */
+  private pathTo(key: string | null): string[] {
+    const names: string[] = [];
+    let entry = key == null ? null : this.nodesByKey.get(key);
+    while (entry) {
+      names.unshift(entry.node.name);
+      entry = entry.parent ? this.nodesByKey.get(entry.parent.key) : null;
+    }
+    return names;
   }
 
   /** The charted row's period, for the chart titles; empty when the report has a single period */

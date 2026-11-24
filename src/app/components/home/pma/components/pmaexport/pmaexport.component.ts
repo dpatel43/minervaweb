@@ -16,6 +16,9 @@ import {PmaExportService} from "../../services/pmaexport/pma-export.service";
 import {PmaSummaryExportRow} from "../../data/pmaexport/pma-summary-export-row";
 import {PmaSummaryExportResponse} from "../../data/pmaexport/pma-summary-export-response";
 import {UntypedFormControl, UntypedFormGroup} from "@angular/forms";
+import {AssistantContextService} from '../../../../../services/ai/assistant-context.service';
+import {ActivatedRoute} from '@angular/router';
+
 import {finalize} from "rxjs/operators";
 import {ColumnWidths} from "../../../../common/column-resize.directive";
 import {Sort} from "@angular/material/sort";
@@ -193,7 +196,12 @@ export class PMAExportComponent implements OnInit {
     return Object.values(this.columnFilters).filter(v => !!v?.trim()).length;
   }
 
-  constructor(private pmaExportService: PmaExportService, @Inject(LOCALE_ID) private locale: string) {
+  /** This screen's tab, for sharing its selection with the app-level AI assistant */
+  private readonly tabUrl: string;
+
+  constructor(private pmaExportService: PmaExportService, @Inject(LOCALE_ID) private locale: string,
+              private assistant: AssistantContextService, route: ActivatedRoute) {
+    this.tabUrl = AssistantContextService.tabUrlOf(route);
   }
 
   hasChild = (_: number, node: ExampleFlatNode) => node.expandable;
@@ -234,6 +242,10 @@ export class PMAExportComponent implements OnInit {
       .subscribe((data: PmaSummaryExportResponse) => {
         this.setBenchmarkShown(!!benchmark?.id);
         this.convertResponse(data);
+        this.assistant.publish('summary', {
+          accountId: this.exportForm.value.account.id, benchmarkId: benchmark?.id, profileId: this.exportForm.value.profile.id,
+          endDate: formatDate(this.exportForm.value.end, 'yyyy-MM-dd', this.locale)
+        }, this.tabUrl);
         console.log(this.dataSource.data);
       }
     );

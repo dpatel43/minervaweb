@@ -537,6 +537,28 @@ app-root {
   background: rgba(255, 255, 255, .85);
 }
 
+/* Ask AI: the same pill as Sign out, filled while its panel is open */
+.btn.app-ai-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 13px;
+  background: transparent;
+  color: #fff;
+  font-weight: 500;
+}
+
+.btn.app-ai-toggle:hover,
+.btn.app-ai-toggle:focus-visible,
+.btn.app-ai-toggle.active {
+  background: #fff;
+  border-color: #fff;
+  color: var(--app-navy);
+}
+
 @media (max-width: 575.98px) {
   .app-navbar-end {
     flex-wrap: wrap;

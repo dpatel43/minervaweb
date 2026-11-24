@@ -10,6 +10,9 @@ import {formatDate} from '@angular/common';
 import {formatValue} from '../../../../common/pipes/number-format';
 import {AMOUNT_DIGITS, fixedDigits, loadDecimals, saveDecimals} from '../../../../common/decimals-control/decimals-control.component';
 import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
+import {AssistantContextService} from '../../../../../services/ai/assistant-context.service';
+import {ActivatedRoute} from '@angular/router';
+
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
 import {PmaExportService} from '../../services/pmaexport/pma-export.service';
 import {MatTreeFlatDataSource, MatTreeFlattener} from '@angular/material/tree';
@@ -321,8 +324,12 @@ export class PmaHistoryComponent {
     return Object.values(this.columnFilters).filter(v => !!v?.trim()).length;
   }
 
+  /** This screen's tab, for sharing its selection with the app-level AI assistant */
+  private readonly tabUrl: string;
+
   constructor(private pmaExportService: PmaExportService, private formBuilder: FormBuilder,
-              @Inject(LOCALE_ID) private locale: string) {
+              @Inject(LOCALE_ID) private locale: string, private assistant: AssistantContextService, route: ActivatedRoute) {
+    this.tabUrl = AssistantContextService.tabUrlOf(route);
     this.exportForm = this.formBuilder.group({
       account: new UntypedFormControl(),
       /** Optional: without one the Benchmark columns stay empty */
@@ -370,6 +377,11 @@ export class PmaHistoryComponent {
       .pipe(finalize(() => this.loading = false))
       .subscribe((data: PmaHistoryResponse) => {
         this.convertResponse(data);
+        const {account, benchmark, profile, start, end} = this.exportForm.value;
+        this.assistant.publish('history', {
+          accountId: account.id, benchmarkId: benchmark?.id, profileId: profile.id,
+          startDate: formatDate(start, 'yyyy-MM-dd', this.locale), endDate: formatDate(end, 'yyyy-MM-dd', this.locale)
+        }, this.tabUrl);
       }
     );
   }

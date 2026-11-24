@@ -1,0 +1,51 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<ng-container *ngIf="available">
+  <div class="assistant-prompts">
+    <button (click)="ask(p)" *ngFor="let p of prompts" [disabled]="asking" [title]="p.text"
+            class="btn btn-sm btn-outline-secondary assistant-prompt" type="button">{{ p.label }}</button>
+  </div>
+  <p *ngIf="!prompts.length" class="text-body-secondary mb-0">There are no suggested questions for this screen yet.</p>
+  <form (ngSubmit)="askTyped()" *ngIf="freeText" class="assistant-question">
+    <input [(ngModel)]="question" [disabled]="asking" aria-label="Ask a question" class="form-control form-control-sm"
+           maxlength="500" name="question" placeholder="Ask a question (no client names)">
+  </form>
+</ng-container>
+<p *ngIf="available === false" class="text-body-secondary mb-0">AI commentary isn't configured.</p>
+<p *ngIf="available === null" class="text-body-secondary mb-0">Checking…</p>
+
+<div *ngIf="asking" aria-live="polite" class="assistant-answer">
+  <span aria-hidden="true" class="spinner-border spinner-border-sm me-2"></span>{{ askedLabel }}…
+</div>
+
+<div *ngIf="result && !asking" aria-live="polite" class="assistant-answer">
+  <div class="assistant-asked">
+    <span>{{ askedLabel }}</span>
+    <button (click)="clear()" aria-label="Clear the answer" class="btn btn-sm btn-link p-0" type="button">Clear</button>
+  </div>
+  <ng-container *ngIf="result.status === 'ok'; else notAnswered">
+    <p *ngFor="let p of paragraphs">{{ p }}</p>
+    <div *ngIf="result.unknownNumbers?.length" class="assistant-warning" role="alert">
+      <i aria-hidden="true" class="bi bi-exclamation-triangle"></i>
+      Check this answer: {{ result.unknownNumbers.join(', ') }} {{ result.unknownNumbers.length === 1 ? 'is' : 'are' }}
+      not in the facts it was given.
+    </div>
+    <div class="assistant-footer">
+      <button (click)="showFacts = !showFacts" [attr.aria-expanded]="showFacts" class="btn btn-sm btn-link p-0" type="button">
+        {{ showFacts ? 'Hide' : 'Show' }} the {{ result.factsUsed.length }} facts it used
+      </button>
+      <span class="text-body-secondary">AI-written from Minerva's figures; check before sharing.</span>
+    </div>
+    <ul *ngIf="showFacts" class="assistant-facts">
+      <li *ngFor="let f of result.factsUsed">{{ f }}</li>
+    </ul>
+  </ng-container>
+  <ng-template #notAnswered>
+    <p class="text-body-secondary mb-0">{{ result.message }}</p>
+  </ng-template>
+</div>
