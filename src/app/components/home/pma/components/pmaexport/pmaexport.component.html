@@ -50,7 +50,7 @@
   <aside *ngIf="dataSource && selectedRow" aria-label="Charts for the selected row" class="card charts-card">
     <app-pma-return-charts (periodChange)="chartPeriod = $event" [parent]="selectedParent"
                            [period]="chartPeriod" [periods]="periods"
-                           [row]="selectedRow"></app-pma-return-charts>
+                           [row]="selectedRow" [valueFormat]="percentDigits"></app-pma-return-charts>
   </aside>
 
   <div class="card results-card with-charts">
@@ -72,6 +72,9 @@
           <i [class.bi-funnel-fill]="hasFilters" [class.bi-funnel]="!hasFilters" aria-hidden="true" class="bi"></i>
           <span *ngIf="hasFilters" aria-hidden="true" class="filter-count">{{ activeFilterCount }}</span>
         </button>
+        <span aria-hidden="true" class="toolbar-divider"></span>
+        <app-decimals-control (decimalsChange)="onPercentDecimalsChange($event)" [decimals]="percentDecimals"
+                              label="Return columns"></app-decimals-control>
         <span aria-hidden="true" class="toolbar-divider"></span>
         <app-table-export-menu (export)="onExport($event)" [busy]="exporting"
                                [viewNote]="exportViewNote"></app-table-export-menu>
@@ -127,7 +130,7 @@
               <td *matCellDef="let data" mat-cell
                   [class.negative]="data.pmaExportRow.accountValues[period.key]?.BaseTotalRor < 0"
                   class="num">
-                {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | numberValue:'.3-3' }}
+                {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | numberValue:percentDigits }}
               </td>
             </ng-container>
 

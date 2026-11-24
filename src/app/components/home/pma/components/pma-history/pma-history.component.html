@@ -64,7 +64,7 @@
   <aside *ngIf="dataSource && selectedRow" aria-label="Charts for the selected row" class="card charts-card">
     <app-pma-return-charts (periodChange)="onChartPeriodChange($event)" [parent]="selectedParent"
                            [period]="chartPeriod" [periods]="chartPeriods" [row]="selectedRow"
-                           valueFormat=".3-5"></app-pma-return-charts>
+                           [valueFormat]="percentDigits"></app-pma-return-charts>
   </aside>
 
   <div class="card results-card with-charts">
@@ -86,6 +86,9 @@
           <i [class.bi-funnel-fill]="hasFilters" [class.bi-funnel]="!hasFilters" aria-hidden="true" class="bi"></i>
           <span *ngIf="hasFilters" aria-hidden="true" class="filter-count">{{ activeFilterCount }}</span>
         </button>
+        <span aria-hidden="true" class="toolbar-divider"></span>
+        <app-decimals-control (decimalsChange)="onPercentDecimalsChange($event)" [decimals]="percentDecimals"
+                              label="Percentage columns"></app-decimals-control>
         <span aria-hidden="true" class="toolbar-divider"></span>
         <app-table-export-menu (export)="onExport($event)" [busy]="exporting"
                                [viewNote]="exportViewNote"></app-table-export-menu>
@@ -165,7 +168,7 @@
               <td *matCellDef="let data" [class.group-start]="first"
                   [class.negative]="data.pmaExportRow.accountValues?.[m.field] < 0"
                   class="num" mat-cell>
-                {{ data.pmaExportRow.accountValues?.[m.field] | numberValue:m.format }}
+                {{ data.pmaExportRow.accountValues?.[m.field] | numberValue:digitsFor(m) }}
               </td>
             </ng-container>
 
@@ -177,7 +180,7 @@
               <td *matCellDef="let data" [class.group-start]="first"
                   [class.negative]="data.pmaExportRow.benchmarkValues?.[m.field] < 0"
                   class="num" mat-cell>
-                {{ data.pmaExportRow.benchmarkValues?.[m.field] | numberValue:m.format }}
+                {{ data.pmaExportRow.benchmarkValues?.[m.field] | numberValue:digitsFor(m) }}
               </td>
             </ng-container>
 

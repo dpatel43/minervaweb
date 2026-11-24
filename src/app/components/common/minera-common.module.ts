@@ -24,12 +24,14 @@ import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatDividerModule} from "@angular/material/divider";
 import {NumberValuePipe} from './pipes/number-value.pipe';
+import {DecimalsControlComponent} from './decimals-control/decimals-control.component';
 
 const COMMON_COMPONENTS = [
   MinervaTableComponent,
   ColumnResizeDirective,
   FitGridHeightDirective,
   TableExportMenuComponent,
+  DecimalsControlComponent,
   NumberValuePipe
 ];
 

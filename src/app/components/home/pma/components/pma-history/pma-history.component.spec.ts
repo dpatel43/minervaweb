@@ -28,6 +28,7 @@ describe('PmaHistoryComponent', () => {
     })
       .compileComponents();
 
+    localStorage.removeItem('minerva.pmaHistory.percentDecimals');
     fixture = TestBed.createComponent(PmaHistoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -99,7 +100,7 @@ describe('PmaHistoryComponent', () => {
       expect(t.title).toBe('Performance History');
       expect(t.columns.length).toBe(component.displayedColumns.length);
       expect(t.columns.find(c => c.key === 'account-return')).toEqual(jasmine.objectContaining(
-        {header: 'Return', group: 'Portfolio', digits: '.3-5'}));
+        {header: 'Return', group: 'Portfolio', digits: '.4-4'}));
       expect(t.columns.find(c => c.key === 'benchmark-return')?.group).toBe('Benchmark');
     });
 
@@ -115,14 +116,14 @@ describe('PmaHistoryComponent', () => {
       const text = fixture.nativeElement.querySelector('.mat-mdc-table')?.textContent ?? '';
       expect(text).toContain('Weight (%)');
       expect(text).toContain('Return (%)');
-      expect(text).toContain('50.000');
-      expect(text).not.toContain('50.000%');
+      expect(text).toContain('50.0000');
+      expect(text).not.toContain('50.0000%');
     });
 
     it('shows contribution for the portfolio and benchmark, in percent', () => {
       const t = component.buildExport({scope: 'all', format: 'csv'});
       expect(t.columns.find(c => c.key === 'account-contribution')).toEqual(jasmine.objectContaining(
-        {header: 'Contribution', group: 'Portfolio', digits: '.3-5', percent: true}));
+        {header: 'Contribution', group: 'Portfolio', digits: '.4-4', percent: true}));
       expect(t.columns.find(c => c.key === 'benchmark-contribution')?.group).toBe('Benchmark');
       const equities = t.rows.find(r => r.values['name'] === 'Equities' && r.values['endDate'] === '2026-08-31');
       expect(equities.values['account-contribution']).toBe(0.005);
@@ -133,10 +134,39 @@ describe('PmaHistoryComponent', () => {
       expect(text).toContain('Contribution (%)');
     });
 
+    it('shows percentages with 4 decimals and amounts with 2', () => {
+      const t = component.buildExport({scope: 'all', format: 'csv'});
+      expect(t.columns.filter(c => c.percent).every(c => c.digits === '.4-4')).toBeTrue();
+      expect(t.columns.find(c => c.key === 'account-bmv')?.digits).toBe('.2-2');
+      expect(t.columns.find(c => c.key === 'benchmark-emv')?.digits).toBe('.2-2');
+    });
+
+    it('changes the decimals of percentage columns from the toolbar, and remembers them', () => {
+      fixture.detectChanges();
+      const [fewer, more] = fixture.nativeElement.querySelectorAll('app-decimals-control button');
+      more.click();
+      more.click();
+      fixture.detectChanges();
+      expect(component.percentDecimals).toBe(6);
+      expect(localStorage.getItem('minerva.pmaHistory.percentDecimals')).toBe('6');
+      const t = component.buildExport({scope: 'all', format: 'xlsx'});
+      expect(t.columns.find(c => c.key === 'account-return')?.digits).toBe('.6-6');
+      expect(t.columns.find(c => c.key === 'account-bmv')?.digits).toBe('.2-2');
+      const text = fixture.nativeElement.querySelector('.mat-mdc-table')?.textContent ?? '';
+      expect(text).toContain('(0.020000)');
+
+      for (let i = 0; i < 10; i++) {
+        fewer.click();
+      }
+      fixture.detectChanges();
+      expect(component.percentDecimals).toBe(0);
+      expect(fewer.disabled).toBeTrue();
+    });
+
     it('shows negative numbers in red brackets', () => {
       fixture.detectChanges();
       const negatives = [...fixture.nativeElement.querySelectorAll('td.negative')].map((td: HTMLElement) => td.textContent.trim());
-      expect(negatives).toContain('(0.020)');   // Total return for 2026-09-30
+      expect(negatives).toContain('(0.0200)');   // Total return for 2026-09-30
       expect(negatives.every(t => /^\(.*\)$/.test(t))).toBeTrue();
     });
 

@@ -296,7 +296,8 @@ export class PmaReturnChartsComponent implements OnInit, OnChanges, OnDestroy {
     const present = rows.map(r => r.value).filter((v): v is number => v !== null);
     const lo = Math.min(0, ...present);
     const hi = Math.max(0, ...present);
-    const labelRoom = 48;
+    // room for the value labels beside the bars, which grow with the number of decimals
+    const labelRoom = Math.max(48, ...present.map(v => this.format(v).length * 6 + 8));
     const left = this.nameWidth + (lo < 0 ? labelRoom : 4);
     const right = this.width - 8 - (hi > 0 ? labelRoom : 4);
     const span = hi - lo || 1;

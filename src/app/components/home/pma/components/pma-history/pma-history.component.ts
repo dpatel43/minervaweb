@@ -8,6 +8,7 @@
 import {Component, Inject, LOCALE_ID} from '@angular/core';
 import {formatDate} from '@angular/common';
 import {formatValue} from '../../../../common/pipes/number-format';
+import {AMOUNT_DIGITS, fixedDigits, loadDecimals, saveDecimals} from '../../../../common/decimals-control/decimals-control.component';
 import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
 import {PmaExportService} from '../../services/pmaexport/pma-export.service';
@@ -27,6 +28,7 @@ import {
 
 const COLUMN_WIDTHS_KEY = 'minerva.pmaHistory.columnWidths';
 const SHOW_FILTERS_KEY = 'minerva.pmaHistory.showColumnFilters';
+const PERCENT_DECIMALS_KEY = 'minerva.pmaHistory.percentDecimals';
 
 
 interface PmaHistoryRowView extends FilterContext {
@@ -53,9 +55,10 @@ interface Metric {
   key: string;
   label: string;
   field: string;
-  /** DecimalPipe digits info */
-  format: string;
-  /** Sent in percent by the API; the header says "(%)", the values have no unit */
+  /**
+   * Sent in percent by the API; the header says "(%)", the values have no unit. Percent columns
+   * show the toolbar's number of decimals, the others AMOUNT_DIGITS.
+   */
   percent?: boolean;
 }
 
@@ -108,14 +111,35 @@ export class PmaHistoryComponent {
 
   /** Metrics shown once for the portfolio and once for the benchmark; `percent` ones arrive in percent and say "(%)" in the header */
   readonly metrics: Metric[] = [
-    {key: 'bmv', label: 'BMV', field: 'CompositeBeginMV', format: '.3-3'},
-    {key: 'emv', label: 'EMV', field: 'CompositeEndMV', format: '.3-3'},
-    {key: 'bodInflow', label: 'BOD Inflow', field: 'CompositeBODInflow', format: '.3-3'},
-    {key: 'bodOutflow', label: 'BOD Outflow', field: 'CompositeBODOutflow', format: '.3-3'},
-    {key: 'weight', label: 'Weight', field: 'CompositeBeginWeight', format: '.3-3', percent: true},
-    {key: 'return', label: 'Return', field: 'BaseTotalRor', format: '.3-5', percent: true},
-    {key: 'contribution', label: 'Contribution', field: 'CompositeBaseContribution', format: '.3-5', percent: true}
+    {key: 'bmv', label: 'BMV', field: 'CompositeBeginMV'},
+    {key: 'emv', label: 'EMV', field: 'CompositeEndMV'},
+    {key: 'bodInflow', label: 'BOD Inflow', field: 'CompositeBODInflow'},
+    {key: 'bodOutflow', label: 'BOD Outflow', field: 'CompositeBODOutflow'},
+    {key: 'weight', label: 'Weight', field: 'CompositeBeginWeight', percent: true},
+    {key: 'return', label: 'Return', field: 'BaseTotalRor', percent: true},
+    {key: 'contribution', label: 'Contribution', field: 'CompositeBaseContribution', percent: true}
   ];
+
+  /** Decimals in percent columns and the charts; the toolbar changes it, remembered per browser */
+  percentDecimals = loadDecimals(PERCENT_DECIMALS_KEY);
+
+  get percentDigits(): string {
+    return fixedDigits(this.percentDecimals);
+  }
+
+  /** DecimalPipe digits info of a metric column */
+  digitsFor(metric: Metric): string {
+    return metric.percent ? this.percentDigits : AMOUNT_DIGITS;
+  }
+
+  onPercentDecimalsChange(decimals: number) {
+    this.percentDecimals = decimals;
+    saveDecimals(PERCENT_DECIMALS_KEY, decimals);
+    // Text filters match the displayed numbers, which just changed
+    if (this.hasFilters) {
+      this.applyView();
+    }
+  }
 
   readonly groupColumns = ['group-info', 'group-account', 'group-benchmark'];
 
@@ -154,7 +178,7 @@ export class PmaHistoryComponent {
   private loadColumnWidths(): ColumnWidths {
     const widths: ColumnWidths = {name: 200, startDate: 100, endDate: 100};
     for (const m of this.metrics) {
-      const width = m.key === 'weight' ? 70 : m.key === 'return' ? 84 : m.key === 'contribution' ? 96 : 125;
+      const width = m.key === 'weight' || m.key === 'return' ? 84 : m.key === 'contribution' ? 96 : 125;
       widths['account-' + m.key] = width;
       widths['benchmark-' + m.key] = width;
     }
@@ -455,10 +479,10 @@ export class PmaHistoryComponent {
     const columns: ExportColumn[] = [
       ...this.textFilterColumns.map(c => ({key: c.key, header: c.label, widthPx: this.columnWidths[c.key]})),
       ...this.metrics.map(m => ({
-        key: 'account-' + m.key, header: m.label, group: 'Portfolio', digits: m.format, percent: m.percent, widthPx: this.columnWidths['account-' + m.key]
+        key: 'account-' + m.key, header: m.label, group: 'Portfolio', digits: this.digitsFor(m), percent: m.percent, widthPx: this.columnWidths['account-' + m.key]
       })),
       ...this.metrics.map(m => ({
-        key: 'benchmark-' + m.key, header: m.label, group: 'Benchmark', digits: m.format, percent: m.percent, widthPx: this.columnWidths['benchmark-' + m.key]
+        key: 'benchmark-' + m.key, header: m.label, group: 'Benchmark', digits: this.digitsFor(m), percent: m.percent, widthPx: this.columnWidths['benchmark-' + m.key]
       }))
     ];
     const view = scope === 'view';
@@ -534,7 +558,7 @@ export class PmaHistoryComponent {
     if (typeof value !== 'number') {
       return {value, display: ''};
     }
-    return {value, display: formatValue(value, this.locale, metric.format)};
+    return {value, display: formatValue(value, this.locale, this.digitsFor(metric))};
   }
 
 

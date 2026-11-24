@@ -23,6 +23,7 @@ describe('PMAExportComponent', () => {
   });
 
   beforeEach(() => {
+    localStorage.removeItem('minerva.pmaExport.percentDecimals');
     fixture = TestBed.createComponent(PMAExportComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -30,5 +31,15 @@ describe('PMAExportComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows returns with 4 decimals by default, and remembers a change', () => {
+    expect(component.percentDigits).toBe('.4-4');
+    component.onPercentDecimalsChange(6);
+    expect(component.percentDigits).toBe('.6-6');
+    expect(localStorage.getItem('minerva.pmaExport.percentDecimals')).toBe('6');
+
+    const next = TestBed.createComponent(PMAExportComponent).componentInstance;
+    expect(next.percentDecimals).toBe(6);
   });
 });

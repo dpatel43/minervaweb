@@ -1103,6 +1103,34 @@ body.col-resizing * {
   opacity: .45;
 }
 
+/* Fewer / more decimals buttons (DecimalsControlComponent) */
+.decimals-control {
+  display: inline-flex;
+  align-items: center;
+}
+
+.decimals-control .decimals-btn {
+  width: auto;
+  min-width: 28px;
+  padding: 0 3px;
+  font-size: var(--app-font-size);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.decimals-control .decimals-glyph {
+  display: inline-flex;
+  align-items: center;
+}
+
+.decimals-control .decimals-glyph .bi {
+  font-size: 15px;
+}
+
+.decimals-control .decimals-btn:disabled {
+  opacity: .45;
+}
+
 /* Filters toggle: pressed while the filter row shows */
 .filter-toggle.active,
 .filter-toggle.active:hover {

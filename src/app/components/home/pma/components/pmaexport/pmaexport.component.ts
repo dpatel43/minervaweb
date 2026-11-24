@@ -8,6 +8,7 @@
 import {Component, Inject, LOCALE_ID, OnInit} from '@angular/core';
 import {formatDate} from '@angular/common';
 import {formatValue} from '../../../../common/pipes/number-format';
+import {fixedDigits, loadDecimals, saveDecimals} from '../../../../common/decimals-control/decimals-control.component';
 import {MatTreeFlatDataSource, MatTreeFlattener} from "@angular/material/tree";
 import {FlatTreeControl} from "@angular/cdk/tree";
 import {PmaSummaryExportRequest} from "../../data/pmaexport/pma-summary-export-request";
@@ -27,6 +28,7 @@ import {
 
 const COLUMN_WIDTHS_KEY = 'minerva.pmaExport.columnWidths';
 const SHOW_FILTERS_KEY = 'minerva.pmaExport.showColumnFilters';
+const PERCENT_DECIMALS_KEY = 'minerva.pmaExport.percentDecimals';
 
 export interface PmaExportRowView extends FilterContext {
   name: string;
@@ -80,6 +82,22 @@ export class PMAExportComponent implements OnInit {
   exportError = '';
 
   /** Column widths in px; updated by the resize handles and remembered per browser */
+  /** Decimals in the return columns and the charts; the toolbar changes it, remembered per browser */
+  percentDecimals = loadDecimals(PERCENT_DECIMALS_KEY);
+
+  get percentDigits(): string {
+    return fixedDigits(this.percentDecimals);
+  }
+
+  onPercentDecimalsChange(decimals: number) {
+    this.percentDecimals = decimals;
+    saveDecimals(PERCENT_DECIMALS_KEY, decimals);
+    // Text filters match the displayed numbers, which just changed
+    if (this.hasFilters) {
+      this.applyView();
+    }
+  }
+
   columnWidths: ColumnWidths = this.loadColumnWidths();
 
   get totalWidth(): number {
@@ -359,7 +377,7 @@ export class PMAExportComponent implements OnInit {
   buildExport({scope}: ExportRequest): TableExport {
     const columns: ExportColumn[] = [
       {key: 'name', header: 'Name', widthPx: this.columnWidths['name']},
-      ...this.periods.map(p => ({key: p.key, header: p.label, group: 'Return', digits: '.3-3', percent: true, widthPx: this.columnWidths[p.key]}))
+      ...this.periods.map(p => ({key: p.key, header: p.label, group: 'Return', digits: this.percentDigits, percent: true, widthPx: this.columnWidths[p.key]}))
     ];
     const view = scope === 'view';
     const rows = flattenForExport(
@@ -405,7 +423,7 @@ export class PMAExportComponent implements OnInit {
     }
     // accountValues is typed as a Map but arrives as a plain JSON object
     const value = (node.pmaExportRow?.accountValues as any)?.[column]?.BaseTotalRor;
-    return {value, display: formatValue(value, this.locale, '.3-3')};
+    return {value, display: formatValue(value, this.locale, this.percentDigits)};
   }
 
 
