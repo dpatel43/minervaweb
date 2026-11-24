@@ -16,6 +16,12 @@
           </app-minerva-auto-complete>
         </div>
         <div class="col-auto filter-field">
+          <label class="form-label" for="benchmark">Benchmark</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="benchmark" inputId="benchmark"
+                                     placeholder="Optional">
+          </app-minerva-auto-complete>
+        </div>
+        <div class="col-auto filter-field">
           <label class="form-label" for="profile">Profile</label>
           <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" inputId="profile"
                                      placeholder="Search profile" required>
@@ -52,10 +58,13 @@
           </div>
         </div>
         <div class="col-auto">
-          <button [disabled]="!canRetrieve || loading" class="btn btn-primary" type="submit">
+          <button [disabled]="!canRetrieve || sameAccount || loading" class="btn btn-primary" type="submit">
             <span *ngIf="loading" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
             Retrieve
           </button>
+        </div>
+        <div *ngIf="sameAccount" class="col-auto">
+          <span class="text-danger small" role="alert">Choose a benchmark other than the account.</span>
         </div>
       </div>
     </div>

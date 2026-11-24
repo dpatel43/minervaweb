@@ -325,6 +325,8 @@ export class PmaHistoryComponent {
               @Inject(LOCALE_ID) private locale: string) {
     this.exportForm = this.formBuilder.group({
       account: new UntypedFormControl(),
+      /** Optional: without one the Benchmark columns stay empty */
+      benchmark: new UntypedFormControl(),
       profile: new UntypedFormControl(),
       start: new UntypedFormControl(),
       end: new UntypedFormControl(),
@@ -344,14 +346,20 @@ export class PmaHistoryComponent {
     return !!account?.id && !!profile?.id && !!start && !!end;
   }
 
+  /** The account can't be its own benchmark */
+  get sameAccount(): boolean {
+    const {account, benchmark} = this.exportForm.value;
+    return !!account?.id && account.id === benchmark?.id;
+  }
+
   onSubmit() {
-    if (!this.canRetrieve || this.loading) {
+    if (!this.canRetrieve || this.sameAccount || this.loading) {
       return;
     }
     let calculationRequest = new PmaHistoryRequest();
     calculationRequest.accountId = this.exportForm.value.account.id;
     calculationRequest.profileId = this.exportForm.value.profile.id;
-    calculationRequest.benchmarkId = 100009;
+    calculationRequest.benchmarkId = this.exportForm.value.benchmark?.id ?? 0;
     calculationRequest.startDate = this.exportForm.value.start;////new Date("2024-10-10");
     calculationRequest.endDate = this.exportForm.value.end;////new Date("2024-10-10");
     calculationRequest.filterSecurities = this.exportForm.value.filterSecurities;
@@ -601,9 +609,10 @@ export class PmaHistoryComponent {
       node => exportValues(columns, key => this.cell(node, key).value),
       node => view && !!node.filterContext);
 
-    const {account, profile, start, end, period} = this.exportForm.value;
+    const {account, benchmark, profile, start, end, period} = this.exportForm.value;
     const details: [string, string][] = [
       ['Account', account?.displayValue ?? ''],
+      ['Benchmark', benchmark?.displayValue ?? 'None'],
       ['Profile', profile?.displayValue ?? ''],
       ['Dates', `${isoDate(start)} to ${isoDate(end)}`]
     ];

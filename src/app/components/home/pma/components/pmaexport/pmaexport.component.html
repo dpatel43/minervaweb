@@ -16,6 +16,12 @@
           </app-minerva-auto-complete>
         </div>
         <div class="col-auto filter-field">
+          <label class="form-label" for="benchmark">Benchmark</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="benchmark" inputId="benchmark"
+                                     placeholder="Optional">
+          </app-minerva-auto-complete>
+        </div>
+        <div class="col-auto filter-field">
           <label class="form-label" for="profile">Profile</label>
           <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" inputId="profile"
                                      placeholder="Search profile" required>
@@ -38,10 +44,13 @@
           </div>
         </div>
         <div class="col-auto">
-          <button [disabled]="!canRetrieve || loading" class="btn btn-primary" type="submit">
+          <button [disabled]="!canRetrieve || sameAccount || loading" class="btn btn-primary" type="submit">
             <span *ngIf="loading" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
             Retrieve
           </button>
+        </div>
+        <div *ngIf="sameAccount" class="col-auto">
+          <span class="text-danger small" role="alert">Choose a benchmark other than the account.</span>
         </div>
       </div>
     </div>
@@ -126,14 +135,45 @@
 
             <ng-container *ngFor="let period of periods" [matColumnDef]="period.key">
               <th *matHeaderCellDef [appColumnResize]="columnWidths" [columnKey]="period.key" (resized)="saveColumnWidths()"
-                  arrowPosition="before" class="num" mat-header-cell mat-sort-header>{{ period.label }} (%)</th>
-              <td *matCellDef="let data" mat-cell
+                  [class.group-start]="showBenchmark" arrowPosition="before" class="num" mat-header-cell
+                  mat-sort-header>{{ showBenchmark ? 'Portfolio' : period.label + ' (%)' }}</th>
+              <td *matCellDef="let data" mat-cell [class.group-start]="showBenchmark"
                   [class.negative]="data.pmaExportRow.accountValues[period.key]?.BaseTotalRor < 0"
                   class="num">
                 {{ data.pmaExportRow.accountValues[period.key]?.BaseTotalRor | numberValue:percentDigits }}
               </td>
             </ng-container>
 
+            <!-- With a benchmark: its return beside the portfolio's, under a period header -->
+            <ng-container *ngFor="let period of periods" [matColumnDef]="benchmarkColumn(period.key)">
+              <th *matHeaderCellDef [appColumnResize]="columnWidths" [columnKey]="benchmarkColumn(period.key)"
+                  (resized)="saveColumnWidths()" arrowPosition="before" class="num" mat-header-cell
+                  mat-sort-header>Benchmark</th>
+              <td *matCellDef="let data" mat-cell
+                  [class.negative]="data.pmaExportRow.benchmarkValues?.[period.key]?.BaseTotalRor < 0"
+                  class="num">
+                {{ data.pmaExportRow.benchmarkValues?.[period.key]?.BaseTotalRor | numberValue:percentDigits }}
+              </td>
+            </ng-container>
+            <ng-container *ngFor="let period of periods" [matColumnDef]="'filter-' + benchmarkColumn(period.key)">
+              <th *matHeaderCellDef class="filter-cell" mat-header-cell>
+                <input #f (input)="onFilterChange(benchmarkColumn(period.key), f.value)"
+                       (keydown.escape)="f.value = ''; onFilterChange(benchmarkColumn(period.key), '')"
+                       [attr.aria-label]="'Filter ' + period.label + ' Benchmark'"
+                       [value]="columnFilters[benchmarkColumn(period.key)] ?? ''" class="form-control column-filter num"
+                       placeholder="e.g. >0" title="&gt;0, &lt;=-0.01, &lt;&gt;0, 0.01..0.05, or text to match">
+              </th>
+            </ng-container>
+            <ng-container matColumnDef="group-name">
+              <th *matHeaderCellDef mat-header-cell></th>
+            </ng-container>
+            <ng-container *ngFor="let period of periods" [matColumnDef]="'group-' + period.key">
+              <th *matHeaderCellDef [attr.colspan]="2" class="group-header" mat-header-cell>{{ period.label }} (%)</th>
+            </ng-container>
+
+            <ng-container *ngIf="showBenchmark">
+              <tr *matHeaderRowDef="groupColumns; sticky: true" class="group-header-row" mat-header-row></tr>
+            </ng-container>
             <tr *matHeaderRowDef="displayedColumns; sticky: true" mat-header-row></tr>
             <tr *matHeaderRowDef="filterColumns; sticky: true" [class.d-none]="!filtersVisible" class="filter-row"
                 mat-header-row></tr>

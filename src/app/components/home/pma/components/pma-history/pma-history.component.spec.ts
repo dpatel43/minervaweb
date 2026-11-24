@@ -7,6 +7,8 @@
 
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
+import {of} from 'rxjs';
+import {PmaExportService} from '../../services/pmaexport/pma-export.service';
 import {PmaHistoryComponent} from './pma-history.component';
 import {provideRouter} from '@angular/router';
 import {provideNoopAnimations} from '@angular/platform-browser/animations';
@@ -37,6 +39,24 @@ describe('PmaHistoryComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('sends the chosen benchmark, or none, and never the account itself', () => {
+    const spy = spyOn(TestBed.inject(PmaExportService), 'runPmaHistory').and.returnValue(of({exportRows: {}} as any));
+    const fill = (benchmarkId?: number) => component.exportForm.patchValue({
+      account: {id: 100010}, profile: {id: 3}, start: new Date(2025, 10, 20), end: new Date(2026, 10, 20),
+      benchmark: benchmarkId ? {id: benchmarkId} : null
+    });
+    fill();
+    component.onSubmit();
+    expect(spy.calls.mostRecent().args[0].benchmarkId).toBe(0);
+    fill(100009);
+    component.onSubmit();
+    expect(spy.calls.mostRecent().args[0].benchmarkId).toBe(100009);
+    fill(100010);
+    expect(component.sameAccount).toBeTrue();
+    component.onSubmit();
+    expect(spy.calls.count()).toBe(2);
   });
 
   describe('charts', () => {

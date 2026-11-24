@@ -58,6 +58,8 @@ export class PMAExportComponent implements OnInit {
 
   exportForm = new UntypedFormGroup({
     account: new UntypedFormControl(),
+    /** Optional: with one, each period shows the portfolio's and the benchmark's return */
+    benchmark: new UntypedFormControl(),
     profile: new UntypedFormControl(),
     end: new UntypedFormControl(),
     /** Leave out the security rows, so only the segments come back */
@@ -76,7 +78,24 @@ export class PMAExportComponent implements OnInit {
     {key: 'ITD', label: 'Inception to Date'}
   ];
 
-  displayedColumns: string[] = ['name', ...this.periods.map(p => p.key)];
+  /** Whether the retrieved data has a benchmark: each period then has a Portfolio and a Benchmark column */
+  showBenchmark = false;
+  displayedColumns: string[] = this.columnsFor(false);
+  /** Period headers above the Portfolio/Benchmark pairs, shown with a benchmark */
+  readonly groupColumns = ['group-name', ...this.periods.map(p => 'group-' + p.key)];
+
+  /** A period's benchmark column id */
+  benchmarkColumn(periodKey: string): string {
+    return 'bench-' + periodKey;
+  }
+
+  private columnsFor(benchmark: boolean): string[] {
+    const columns = ['name'];
+    for (const p of this.periods) {
+      columns.push(p.key, ...(benchmark ? [this.benchmarkColumn(p.key)] : []));
+    }
+    return columns;
+  }
   loading = false;
   exporting = false;
   exportError = '';
@@ -116,6 +135,7 @@ export class PMAExportComponent implements OnInit {
     const widths: ColumnWidths = {name: 240};
     for (const p of this.periods) {
       widths[p.key] = 120;
+      widths[this.benchmarkColumn(p.key)] = 100;
     }
     try {
       const saved = JSON.parse(localStorage.getItem(COLUMN_WIDTHS_KEY) ?? '{}');
@@ -187,14 +207,21 @@ export class PMAExportComponent implements OnInit {
     return !!account?.id && !!profile?.id && !!end;
   }
 
+  /** The account can't be its own benchmark */
+  get sameAccount(): boolean {
+    const {account, benchmark} = this.exportForm.value;
+    return !!account?.id && account.id === benchmark?.id;
+  }
+
   onSubmit() {
-    if (!this.canRetrieve || this.loading) {
+    if (!this.canRetrieve || this.sameAccount || this.loading) {
       return;
     }
     let calculationRequest = new PmaSummaryExportRequest();
     calculationRequest.accountId = this.exportForm.value.account.id;
     calculationRequest.profileId = this.exportForm.value.profile.id;
-    calculationRequest.benchmarkId = this.exportForm.value.account.id;
+    const benchmark = this.exportForm.value.benchmark;
+    calculationRequest.benchmarkId = benchmark?.id ?? 0;
     calculationRequest.endDate = this.exportForm.value.end;////new Date("2024-10-10");
     console.log(calculationRequest.endDate);
     //calculationRequest.endDate.setHours(0, 0, 0, 0);
@@ -205,10 +232,25 @@ export class PMAExportComponent implements OnInit {
     this.pmaExportService.runPmaSummaryExport(calculationRequest)
       .pipe(finalize(() => this.loading = false))
       .subscribe((data: PmaSummaryExportResponse) => {
+        this.setBenchmarkShown(!!benchmark?.id);
         this.convertResponse(data);
         console.log(this.dataSource.data);
       }
     );
+  }
+
+  /** Shows or hides the Benchmark columns; their filters and sort go with them */
+  setBenchmarkShown(shown: boolean) {
+    this.showBenchmark = shown;
+    this.displayedColumns = this.columnsFor(shown);
+    if (!shown) {
+      const filters = {...this.columnFilters};
+      this.periods.forEach(p => delete filters[this.benchmarkColumn(p.key)]);
+      this.columnFilters = filters;
+      if (this.sort.active.startsWith('bench-')) {
+        this.sort = {active: '', direction: ''};
+      }
+    }
   }
 
   private transformer = (node: PmaExportRowView, level: number) => {
@@ -375,9 +417,14 @@ export class PMAExportComponent implements OnInit {
 
   /** The table as an export: all columns, with rows from the current view or from everything retrieved. */
   buildExport({scope}: ExportRequest): TableExport {
+    const percentColumn = (key: string, header: string, group: string): ExportColumn =>
+      ({key, header, group, digits: this.percentDigits, percent: true, widthPx: this.columnWidths[key]});
     const columns: ExportColumn[] = [
       {key: 'name', header: 'Name', widthPx: this.columnWidths['name']},
-      ...this.periods.map(p => ({key: p.key, header: p.label, group: 'Return', digits: this.percentDigits, percent: true, widthPx: this.columnWidths[p.key]}))
+      // (no flatMap: the app's TypeScript lib predates ES2019)
+      ...([] as ExportColumn[]).concat(...this.periods.map(p => this.showBenchmark
+        ? [percentColumn(p.key, 'Portfolio', p.label), percentColumn(this.benchmarkColumn(p.key), 'Benchmark', p.label)]
+        : [percentColumn(p.key, p.label, 'Return')]))
     ];
     const view = scope === 'view';
     const rows = flattenForExport(
@@ -385,9 +432,10 @@ export class PMAExportComponent implements OnInit {
       node => exportValues(columns, key => this.cell(node, key).value),
       node => view && !!node.filterContext);
 
-    const {account, profile, end} = this.exportForm.value;
+    const {account, benchmark, profile, end} = this.exportForm.value;
     const details: [string, string][] = [
       ['Account', account?.displayValue ?? ''],
+      ['Benchmark', this.showBenchmark ? benchmark?.displayValue ?? '' : 'None'],
       ['Profile', profile?.displayValue ?? ''],
       ['As of', isoDate(end)],
       ['Rows', view ? this.describeView() : `All data, ${this.totalRows} rows`],
@@ -398,7 +446,14 @@ export class PMAExportComponent implements OnInit {
 
   /** "Current view, 12 of 40 rows; filters: Name "tech"; sorted by Year to Date, descending" */
   private describeView(): string {
-    const label = (key: string) => key === 'name' ? 'Name' : this.periods.find(p => p.key === key)?.label ?? key;
+    const label = (key: string) => {
+      if (key === 'name') {
+        return 'Name';
+      }
+      const benchmark = key.startsWith('bench-');
+      const period = this.periods.find(p => p.key === (benchmark ? key.slice('bench-'.length) : key))?.label ?? key;
+      return this.showBenchmark ? `${period} ${benchmark ? 'Benchmark' : 'Portfolio'}` : period;
+    };
     const parts = [`Current view, ${this.visibleRows} of ${this.totalRows} rows`];
     const filters = Object.entries(this.columnFilters)
       .filter(([, v]) => v?.trim())
@@ -421,8 +476,10 @@ export class PMAExportComponent implements OnInit {
     if (column === 'name') {
       return {value: node.name, display: node.name ?? ''};
     }
-    // accountValues is typed as a Map but arrives as a plain JSON object
-    const value = (node.pmaExportRow?.accountValues as any)?.[column]?.BaseTotalRor;
+    // The values are typed as Maps but arrive as plain JSON objects, keyed by period
+    const benchmark = column.startsWith('bench-');
+    const values = (benchmark ? node.pmaExportRow?.benchmarkValues : node.pmaExportRow?.accountValues) as any;
+    const value = values?.[benchmark ? column.slice('bench-'.length) : column]?.BaseTotalRor;
     return {value, display: formatValue(value, this.locale, this.percentDigits)};
   }
 
