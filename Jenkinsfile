@@ -55,7 +55,7 @@ pipeline {
         stage('deploy') {
             steps {
                 // Redeploys the cluster with the :latest just pushed (deploy-minervafinanceapps' Jenkinsfile)
-                build job: '/minervafinance-deployment', wait: false
+                build job: '/PMA/minervafinance-deployment', wait: false
             }
         }
     }
