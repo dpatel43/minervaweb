@@ -11,4 +11,5 @@ export class PmaSummaryExportRequest {
   profileId: number;
   endDate: Date;
   periods: string[];
+  filterSecurities: boolean;
 }

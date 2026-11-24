@@ -57,7 +57,9 @@ export class PMAExportComponent implements OnInit {
   exportForm = new UntypedFormGroup({
     account: new UntypedFormControl(),
     profile: new UntypedFormControl(),
-    end: new UntypedFormControl()
+    end: new UntypedFormControl(),
+    /** Leave out the security rows, so only the segments come back */
+    filterSecurities: new UntypedFormControl(false)
   });
 
 
@@ -179,6 +181,7 @@ export class PMAExportComponent implements OnInit {
     console.log(calculationRequest.endDate);
     //calculationRequest.endDate.setHours(0, 0, 0, 0);
     calculationRequest.periods = this.periods.map(p => p.key);
+    calculationRequest.filterSecurities = !!this.exportForm.value.filterSecurities;
 
     this.loading = true;
     this.pmaExportService.runPmaSummaryExport(calculationRequest)
