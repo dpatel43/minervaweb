@@ -113,7 +113,8 @@ export class PmaHistoryComponent {
     {key: 'bodInflow', label: 'BOD Inflow', field: 'CompositeBODInflow', format: '.3-3'},
     {key: 'bodOutflow', label: 'BOD Outflow', field: 'CompositeBODOutflow', format: '.3-3'},
     {key: 'weight', label: 'Weight', field: 'CompositeBeginWeight', format: '.3-3', percent: true},
-    {key: 'return', label: 'Return', field: 'BaseTotalRor', format: '.3-5', percent: true}
+    {key: 'return', label: 'Return', field: 'BaseTotalRor', format: '.3-5', percent: true},
+    {key: 'contribution', label: 'Contribution', field: 'CompositeBaseContribution', format: '.3-5', percent: true}
   ];
 
   readonly groupColumns = ['group-info', 'group-account', 'group-benchmark'];
@@ -153,7 +154,7 @@ export class PmaHistoryComponent {
   private loadColumnWidths(): ColumnWidths {
     const widths: ColumnWidths = {name: 200, startDate: 100, endDate: 100};
     for (const m of this.metrics) {
-      const width = m.key === 'weight' ? 70 : m.key === 'return' ? 84 : 125;
+      const width = m.key === 'weight' ? 70 : m.key === 'return' ? 84 : m.key === 'contribution' ? 96 : 125;
       widths['account-' + m.key] = width;
       widths['benchmark-' + m.key] = width;
     }

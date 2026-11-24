@@ -79,8 +79,8 @@ describe('PmaHistoryComponent', () => {
   describe('export', () => {
     const row = (id: number, parentId: number, name: string, ror: number, endDate: string) =>
       ({id, parentId, name, startDate: endDate.slice(0, 8) + '01', endDate,
-        accountValues: {BaseTotalRor: ror, CompositeBeginWeight: id === 0 ? 100 : 50},
-        benchmarkValues: {BaseTotalRor: ror / 2}});
+        accountValues: {BaseTotalRor: ror, CompositeBeginWeight: id === 0 ? 100 : 50, CompositeBaseContribution: ror / 4},
+        benchmarkValues: {BaseTotalRor: ror / 2, CompositeBaseContribution: ror / 8}});
     const periodTree = (end: string, total: number, equities: number, cash: number) =>
       [row(0, -1, 'Total', total, end), row(1, 0, 'Equities', equities, end), row(2, 0, 'Cash', cash, end)];
 
@@ -116,6 +116,20 @@ describe('PmaHistoryComponent', () => {
       expect(text).toContain('Return (%)');
       expect(text).toContain('50.000');
       expect(text).not.toContain('50.000%');
+    });
+
+    it('shows contribution for the portfolio and benchmark, in percent', () => {
+      const t = component.buildExport({scope: 'all', format: 'csv'});
+      expect(t.columns.find(c => c.key === 'account-contribution')).toEqual(jasmine.objectContaining(
+        {header: 'Contribution', group: 'Portfolio', digits: '.3-5', percent: true}));
+      expect(t.columns.find(c => c.key === 'benchmark-contribution')?.group).toBe('Benchmark');
+      const equities = t.rows.find(r => r.values['name'] === 'Equities' && r.values['endDate'] === '2026-08-31');
+      expect(equities.values['account-contribution']).toBe(0.005);
+      expect(equities.values['benchmark-contribution']).toBe(0.0025);
+
+      fixture.detectChanges();
+      const text = fixture.nativeElement.querySelector('.mat-mdc-table')?.textContent ?? '';
+      expect(text).toContain('Contribution (%)');
     });
 
     it('shows negative numbers in red brackets', () => {
