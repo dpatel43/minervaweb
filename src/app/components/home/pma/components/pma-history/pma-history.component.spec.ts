@@ -55,7 +55,8 @@ describe('PmaHistoryComponent', () => {
 
     it('charts the latest period\'s root by default, with every period\'s return', () => {
       expect(component.chartPeriods.map(p => p.key)).toEqual(['2026-08-31', '2026-09-30']);
-      expect(component.chartPeriods[0].axisLines).toEqual(['Aug 1', 'Aug 31']);
+      expect(component.chartPeriods[0].short).toBe('Aug 31');
+      expect(component.chartPeriods[0].axisLines).toBeUndefined();
       expect(component.chartPeriods[0].label).toBe('Aug 1, 2026 – Aug 31, 2026');
       expect(component.chartPeriod).toBe('2026-09-30');
       expect(component.selectedKey).toBe('2026-09-30|0');

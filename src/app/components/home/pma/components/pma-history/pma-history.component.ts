@@ -324,8 +324,8 @@ export class PmaHistoryComponent {
   }
 
   /**
-   * Each period is labelled with its start and end date, taken from its rows; on the axis they are
-   * stacked, start over end. A period whose rows carry no dates is shown by its key.
+   * Each period is labelled with its start and end date, taken from its rows (tooltip, segment chart
+   * title); the axis shows only the end date. A period whose rows carry no dates is shown by its key.
    */
   private periodLabels(keys: string[], rowsMap: Map<string, PmaHistoryRow[]>): ChartPeriod[] {
     const dates = keys.map(key => {
@@ -333,7 +333,7 @@ export class PmaHistoryComponent {
       return row ? {start: String(row.startDate), end: String(row.endDate)} : null;
     });
     // Leave the year off the axis when every date is in the same year; the tooltip always has it
-    const years = new Set([].concat(...dates.filter(d => d).map(d => [d.start.slice(0, 4), d.end.slice(0, 4)])));
+    const years = new Set(dates.filter(d => d).map(d => d.end.slice(0, 4)));
     const axisFormat = years.size <= 1 ? 'MMM d' : 'MM/dd/yy';
     const fmt = (d: string, f: string) => formatDate(d, f, this.locale);
     return keys.map((key, i) => {
@@ -342,7 +342,7 @@ export class PmaHistoryComponent {
         ? {
           key,
           label: `${fmt(d.start, 'mediumDate')} – ${fmt(d.end, 'mediumDate')}`,
-          axisLines: [fmt(d.start, axisFormat), fmt(d.end, axisFormat)]
+          short: fmt(d.end, axisFormat)
         }
         : {key, label: key};
     });
