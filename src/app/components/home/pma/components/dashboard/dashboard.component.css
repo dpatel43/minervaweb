@@ -11,3 +11,123 @@
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/* Everything under the filter bar scrolls as one page */
+.dashboard-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.tile {
+  padding: 10px 12px;
+}
+
+.tile-label {
+  color: var(--app-muted);
+}
+
+.tile-value {
+  margin: 2px 0 6px;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--bs-body-color);
+}
+
+.tile-compare {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1px 10px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-compare dt {
+  font-weight: normal;
+  color: var(--app-muted);
+}
+
+.tile-compare dd {
+  margin: 0;
+  text-align: right;
+}
+
+.tile-compare dd.excess {
+  font-weight: 600;
+}
+
+.tiles-note {
+  margin-top: -4px;
+  color: var(--app-muted);
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 8px;
+  /* cards side by side share the row's height (content stays at the top), so their edges line up */
+  align-items: stretch;
+}
+
+.dash-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.dash-card-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dash-card-subtitle,
+.dash-card-lead {
+  color: var(--app-muted);
+}
+
+.dash-card-lead {
+  margin: 0 0 6px;
+}
+
+.dash-card-lead strong {
+  color: var(--bs-body-color);
+}
+
+.top-segments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 16px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--app-border);
+}
+
+.dash-subhead {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+
+.chart-empty {
+  margin: 4px 0 0;
+  color: var(--app-muted);
+}
+
+/* the dashboard's negatives read like the tables': red, in brackets */
+.negative {
+  color: var(--app-negative);
+}

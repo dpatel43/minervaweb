@@ -1,0 +1,29 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<svg *ngIf="bars.length" [attr.aria-label]="ariaLabel" [attr.height]="height" [attr.viewBox]="'0 0 ' + width + ' ' + height"
+     [attr.width]="width" class="chart-svg" role="group">
+  <line [attr.x1]="zeroX" [attr.x2]="zeroX" [attr.y2]="height - 2" class="baseline" y1="2"></line>
+  <ng-container *ngFor="let b of bars">
+    <line *ngIf="b.ruleBefore" [attr.x2]="width" [attr.y1]="b.ruleY" [attr.y2]="b.ruleY" class="rule" x1="0"></line>
+    <g (blur)="hideTooltip()" (focus)="showTooltip($event, b)" (mouseleave)="hideTooltip()"
+       (mousemove)="showTooltip($event, b)" [attr.aria-label]="b.label + ': ' + b.display + (b.detail ? '. ' + b.detail : '')"
+       [class.emphasised]="b.emphasised" class="segment" role="img" tabindex="0">
+      <rect [attr.width]="width" [attr.y]="b.y - 6" class="hit" height="26" x="0"></rect>
+      <text [attr.y]="b.y + 10.5" class="segment-name" x="0">{{ b.shortLabel }}<title>{{ b.label }}</title></text>
+      <path *ngIf="b.path" [attr.d]="b.path" [class.negative]="b.negative" class="bar"></path>
+      <text [attr.text-anchor]="b.labelAnchor" [attr.x]="b.labelX" [attr.y]="b.y + 10.5" [class.negative]="b.negative"
+            class="value">{{ b.display }}</text>
+    </g>
+  </ng-container>
+</svg>
+
+<div *ngIf="tooltip" [style.left.px]="tooltip.x" [style.top.px]="tooltip.y" class="chart-tooltip" role="presentation">
+  <strong>{{ tooltip.value }}</strong>
+  <span>{{ tooltip.label }}</span>
+  <span *ngIf="tooltip.detail" class="tooltip-detail">{{ tooltip.detail }}</span>
+</div>

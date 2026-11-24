@@ -1,0 +1,19 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+/* Shares the return charts' styles (pma-return-charts.component.css); these are the additions. */
+
+.rule {
+  stroke: var(--app-border);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart-tooltip .tooltip-detail {
+  display: block;
+  margin-top: 2px;
+}

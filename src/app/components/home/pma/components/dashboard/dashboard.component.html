@@ -6,12 +6,18 @@
   -->
 
 <div class="report-page">
-  <form [formGroup]="exportForm" class="card filter-bar">
+  <form (ngSubmit)="onSubmit()" [formGroup]="exportForm" class="card filter-bar">
     <div class="card-body">
       <div class="row g-2 align-items-end">
         <div class="col-auto filter-field">
           <label class="form-label" for="account">Account</label>
           <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" inputId="account"
+                                     placeholder="Search account" required>
+          </app-minerva-auto-complete>
+        </div>
+        <div class="col-auto filter-field">
+          <label class="form-label" for="benchmark">Benchmark</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="benchmark" inputId="benchmark"
                                      placeholder="Search account" required>
           </app-minerva-auto-complete>
         </div>
@@ -31,7 +37,7 @@
           </div>
         </div>
         <div class="col-auto filter-field-sm">
-          <label class="form-label" for="end">End date</label>
+          <label class="form-label" for="end">As of date</label>
           <div class="input-group flex-nowrap date-input">
             <input [matDatepicker]="end" class="form-control" formControlName="end" id="end"
                    placeholder="MM/DD/YYYY">
@@ -39,7 +45,97 @@
             <mat-datepicker #end></mat-datepicker>
           </div>
         </div>
+        <div class="col-auto">
+          <button [disabled]="!canRetrieve || sameAccount || loading" class="btn btn-primary" type="submit">
+            <span *ngIf="loading" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
+            Retrieve
+          </button>
+        </div>
+        <div *ngIf="sameAccount" class="col-auto">
+          <span class="text-danger small" role="alert">Choose a benchmark other than the account.</span>
+        </div>
       </div>
     </div>
   </form>
+
+  <div class="dashboard-body">
+    <div *ngIf="error" class="alert alert-danger mb-0" role="alert">{{ error }}</div>
+    <div *ngIf="!hasData && !error" class="card">
+      <div class="card-body results-empty">
+        Choose an account, a benchmark, a profile, a start date and an as-of date, then select Retrieve.
+      </div>
+    </div>
+
+    <ng-container *ngIf="hasData">
+      <!-- Returns by standard period, as of the end date -->
+      <section [attr.aria-label]="'Returns as of ' + shown.end" class="tiles">
+        <div *ngFor="let t of tiles" class="card tile">
+          <div class="tile-label">{{ t.label }}</div>
+          <div [class.negative]="t.portfolio < 0" class="tile-value">{{ format(t.portfolio) }}</div>
+          <dl class="tile-compare">
+            <dt>Benchmark</dt>
+            <dd [class.negative]="t.benchmark < 0">{{ format(t.benchmark) }}</dd>
+            <dt>Excess</dt>
+            <dd [class.negative]="t.excess < 0" class="excess">{{ format(t.excess) }}</dd>
+          </dl>
+        </div>
+      </section>
+      <div class="tiles-note">Returns (%) of {{ shown.account }} against {{ shown.benchmark }}, as of {{ shown.end }}</div>
+
+      <section aria-labelledby="cumulative-title" class="card dash-card">
+        <div class="card-body">
+          <header class="dash-card-header">
+            <h2 class="dash-card-title" id="cumulative-title">Cumulative return (%)</h2>
+            <span class="dash-card-subtitle">{{ shown.start }} – {{ shown.end }}</span>
+          </header>
+          <app-cumulative-return-chart [benchmarkName]="shown.benchmark" [points]="points"
+                                       [portfolioName]="shown.account" [valueFormat]="digits"></app-cumulative-return-chart>
+        </div>
+      </section>
+
+      <div class="dash-grid">
+        <section aria-labelledby="attribution-title" class="card dash-card">
+          <div class="card-body">
+            <header class="dash-card-header">
+              <h2 class="dash-card-title" id="attribution-title">Attribution (%)</h2>
+              <span class="dash-card-subtitle">{{ shown.start }} – {{ shown.end }}</span>
+            </header>
+            <p *ngIf="periodReturns" class="dash-card-lead">
+              Portfolio <strong [class.negative]="periodReturns.portfolio < 0">{{ format(periodReturns.portfolio) }}</strong>,
+              benchmark <strong [class.negative]="periodReturns.benchmark < 0">{{ format(periodReturns.benchmark) }}</strong>:
+              excess <strong [class.negative]="periodReturns.excess < 0">{{ format(periodReturns.excess) }}</strong>
+            </p>
+            <app-diverging-bars [items]="effects" [labelWidth]="96" [valueFormat]="digits"
+                                ariaLabel="Allocation, selection and interaction effects and their total, in percent"></app-diverging-bars>
+            <div class="top-segments">
+              <div>
+                <h3 class="dash-subhead">Top contributors</h3>
+                <app-diverging-bars *ngIf="contributors.length; else noContributors" [items]="contributors"
+                                    [valueFormat]="digits" ariaLabel="Segments that added most, by total effect in percent"></app-diverging-bars>
+                <ng-template #noContributors><p class="chart-empty">No segment added to the excess return.</p></ng-template>
+              </div>
+              <div>
+                <h3 class="dash-subhead">Top detractors</h3>
+                <app-diverging-bars *ngIf="detractors.length; else noDetractors" [items]="detractors"
+                                    [valueFormat]="digits" ariaLabel="Segments that took most away, by total effect in percent"></app-diverging-bars>
+                <ng-template #noDetractors><p class="chart-empty">No segment took from the excess return.</p></ng-template>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="weights-title" class="card dash-card">
+          <div class="card-body">
+            <header class="dash-card-header">
+              <h2 class="dash-card-title" id="weights-title">Active weight by segment (%)</h2>
+              <span class="dash-card-subtitle">Start of {{ shown.end }}</span>
+            </header>
+            <p class="dash-card-lead">Portfolio minus benchmark begin weight; hover a bar for both.</p>
+            <app-diverging-bars [items]="weights" [labelWidth]="150" [valueFormat]="digits"
+                                ariaLabel="Active weight of each segment, in percent"></app-diverging-bars>
+          </div>
+        </section>
+      </div>
+    </ng-container>
+  </div>
 </div>

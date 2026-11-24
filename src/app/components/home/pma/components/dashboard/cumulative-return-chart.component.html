@@ -1,0 +1,46 @@
+<!--
+  ~ /* Copyright (C) Minerva Systems, Inc - All Rights Reserved
+  ~  * Unauthorized copying of this file, via any medium is strictly prohibited
+  ~  * Proprietary and confidential.
+  ~  */
+  -->
+
+<div *ngIf="series.length" aria-hidden="true" class="legend">
+  <span *ngFor="let s of series" class="legend-item"><i [class]="'swatch ' + s.key"></i>{{ s.name }}</span>
+</div>
+
+<svg (mouseleave)="onLeave()" (mousemove)="onMove($event)" *ngIf="series.length" [attr.aria-label]="summary"
+     [attr.height]="height" [attr.viewBox]="'0 0 ' + width + ' ' + height" [attr.width]="width" class="chart-svg" role="img">
+  <g class="grid">
+    <ng-container *ngFor="let t of ticks">
+      <line [attr.x1]="m.left" [attr.x2]="plotRight" [attr.y1]="t.y" [attr.y2]="t.y"></line>
+      <text [attr.x]="m.left - 6" [attr.y]="t.y + 3.5" class="tick" text-anchor="end">{{ t.label }}</text>
+    </ng-container>
+  </g>
+  <line [attr.x1]="m.left" [attr.x2]="plotRight" [attr.y1]="zeroY" [attr.y2]="zeroY" class="baseline"></line>
+  <text *ngFor="let d of dateTicks; let first = first; let last = last" [attr.text-anchor]="first ? 'start' : last ? 'end' : 'middle'"
+        [attr.x]="d.x" [attr.y]="height - 8" class="tick">{{ d.label }}</text>
+
+  <path *ngFor="let s of series" [attr.d]="s.path" [class]="'series ' + s.key"></path>
+
+  <!-- direct labels at the line ends -->
+  <g *ngFor="let s of series">
+    <text [attr.x]="plotRight + 8" [attr.y]="s.labelY - 1" class="end-name">{{ s.name }}</text>
+    <text [attr.x]="plotRight + 8" [attr.y]="s.labelY + 11" [class.negative]="s.display.startsWith('(')" class="value">{{ s.display }}</text>
+  </g>
+
+  <!-- crosshair -->
+  <g *ngIf="hover">
+    <line [attr.x1]="hover.x" [attr.x2]="hover.x" [attr.y1]="m.top" [attr.y2]="height - m.bottom" class="crosshair"></line>
+    <circle *ngIf="hover.ys.portfolio !== null" [attr.cx]="hover.x" [attr.cy]="hover.ys.portfolio" class="dot portfolio" r="4"></circle>
+    <circle *ngIf="hover.ys.benchmark !== null" [attr.cx]="hover.x" [attr.cy]="hover.ys.benchmark" class="dot benchmark" r="4"></circle>
+  </g>
+  <rect [attr.height]="height - m.top - m.bottom" [attr.width]="plotRight - m.left" [attr.x]="m.left" [attr.y]="m.top" class="hit"></rect>
+</svg>
+
+<div *ngIf="hover" [style.left.px]="hover.tipX" [style.top.px]="m.top + 24" class="chart-tooltip line-tooltip" role="presentation">
+  <span class="tooltip-date">{{ dateLabel(hover.index) }}</span>
+  <span class="tooltip-row"><i class="swatch portfolio"></i>{{ portfolioName }} <strong>{{ format(points[hover.index].portfolio) }}</strong></span>
+  <span class="tooltip-row"><i class="swatch benchmark"></i>{{ benchmarkName }} <strong>{{ format(points[hover.index].benchmark) }}</strong></span>
+  <span class="tooltip-row">Excess <strong>{{ format(excess(hover.index)) }}</strong></span>
+</div>

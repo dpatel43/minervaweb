@@ -1,0 +1,104 @@
+/*
+ *  Copyright (C) Minerva Systems, Inc - All Rights Reserved
+ *  * Unauthorized copying of this file, via any medium is strictly prohibited
+ *  * Proprietary and confidential.
+ *
+ */
+
+/* Shares the return charts' styles (pma-return-charts.component.css); these are the additions. */
+
+:host {
+  /* Categorical slots 1 and 2 (dataviz palette), validated together against #ffffff: all checks pass */
+  --series-portfolio: #2a78d6;
+  --series-benchmark: #eb6834;
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 4px;
+  color: var(--bs-body-color);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.swatch.portfolio {
+  background: var(--series-portfolio);
+}
+
+.swatch.benchmark {
+  background: var(--series-benchmark);
+}
+
+.series {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.series.portfolio {
+  stroke: var(--series-portfolio);
+}
+
+.series.benchmark {
+  stroke: var(--series-benchmark);
+}
+
+.end-name {
+  fill: var(--app-muted);
+}
+
+.crosshair {
+  stroke: var(--chart-baseline);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+/* 2px surface ring keeps the dots legible where the lines cross */
+.dot {
+  stroke: var(--app-surface);
+  stroke-width: 2;
+}
+
+.dot.portfolio {
+  fill: var(--series-portfolio);
+}
+
+.dot.benchmark {
+  fill: var(--series-benchmark);
+}
+
+.line-tooltip {
+  transform: translate(-50%, 0);
+}
+
+.line-tooltip .tooltip-date {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--app-muted);
+}
+
+.line-tooltip .tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--bs-body-color);
+}
+
+.line-tooltip .tooltip-row strong {
+  display: inline;
+  margin-left: auto;
+  padding-left: 10px;
+}

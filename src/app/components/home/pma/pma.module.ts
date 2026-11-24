@@ -27,10 +27,14 @@ import {PmaReturnChartsComponent} from './components/return-charts/pma-return-ch
 import {PmaHistoryComponent} from './components/pma-history//pma-history.component';
 import {AttributionComponent} from './components/attribution/attribution.component';
 import {AttributionChartsComponent} from './components/attribution/attribution-charts.component';
+import {DashboardComponent} from './components/dashboard/dashboard.component';
+import {DivergingBarsComponent} from './components/dashboard/diverging-bars.component';
+import {CumulativeReturnChartComponent} from './components/dashboard/cumulative-return-chart.component';
 import {AgGridAngular} from "@ag-grid-community/angular";
 
 @NgModule({
-  declarations: [PmaComponent, FieldComponent, FieldListComponent, FieldDetailComponent, TimeFieldComponent, TransactionFieldComponent, ProcessorComponent, PMAExportComponent, PmaReturnChartsComponent, PmaHistoryComponent, AttributionComponent, AttributionChartsComponent],
+  declarations: [PmaComponent, FieldComponent, FieldListComponent, FieldDetailComponent, TimeFieldComponent, TransactionFieldComponent, ProcessorComponent, PMAExportComponent, PmaReturnChartsComponent, PmaHistoryComponent, AttributionComponent, AttributionChartsComponent, DashboardComponent, DivergingBarsComponent,
+    CumulativeReturnChartComponent],
   imports: [
     MineraCommonModule,
     PmaRoutingModule,
