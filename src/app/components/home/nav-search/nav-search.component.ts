@@ -145,9 +145,11 @@ export class NavSearchComponent {
     }
     const matches: NavSearchResult[] = [];
     for (const group of this.moduleGroups ?? []) {
+      // a sub-menu is labelled with its parent, e.g. "PMA › Setup"
+      const groupName = group.parentModuleGroup ? group.parentModuleGroup.name + ' › ' + group.name : group.name;
       for (const module of group.modules ?? []) {
-        if ((module.name + ' ' + group.name).toLowerCase().includes(q)) {
-          matches.push({module, group: group.name});
+        if ((module.name + ' ' + groupName).toLowerCase().includes(q)) {
+          matches.push({module, group: groupName});
         }
       }
     }

@@ -17,7 +17,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto">
-        <li *ngFor="let moduleGroup of moduleGroups; let i = index" class="nav-item dropdown">
+        <li *ngFor="let moduleGroup of menuGroups; let i = index" class="nav-item dropdown">
           <a [attr.id]="'moduleGroup' + i" aria-expanded="false" class="nav-link dropdown-toggle"
              data-bs-toggle="dropdown" href="#" role="button">
             {{ moduleGroup.name }}
@@ -27,6 +27,23 @@
               <a (click)="openModule(module); $event.preventDefault()" [attr.href]="'#' + moduleUrl(module)"
                  class="dropdown-item">{{ module.name }}</a>
             </li>
+            <ng-container *ngIf="subGroups.get(moduleGroup.id) as children">
+              <li *ngIf="moduleGroup.modules?.length"><hr class="dropdown-divider"></li>
+              <!-- Sub-menu: opens on hover, or on click/Enter for touch and keyboard; the click must not close the parent -->
+              <li *ngFor="let child of children" (mouseleave)="openSubGroup = null" class="dropdown-submenu">
+                <a (click)="openSubGroup = openSubGroup === child.id ? null : child.id; $event.preventDefault(); $event.stopPropagation()"
+                   [attr.aria-expanded]="openSubGroup === child.id" class="dropdown-item dropdown-submenu-toggle" href="#"
+                   role="button">
+                  {{ child.name }}<i aria-hidden="true" class="bi bi-chevron-right"></i>
+                </a>
+                <ul [class.show]="openSubGroup === child.id" class="dropdown-menu">
+                  <li *ngFor="let module of child.modules">
+                    <a (click)="openSubGroup = null; openModule(module); $event.preventDefault()"
+                       [attr.href]="'#' + moduleUrl(module)" class="dropdown-item">{{ module.name }}</a>
+                  </li>
+                </ul>
+              </li>
+            </ng-container>
           </ul>
         </li>
       </ul>

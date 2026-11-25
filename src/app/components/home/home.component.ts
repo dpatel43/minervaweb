@@ -49,6 +49,12 @@ export class HomeComponent implements OnInit {
   readonly assistantContext$: Observable<ScreenContext | null>;
   readonly activeTitle$: Observable<string>;
   moduleGroups: ModuleGroupVO[];
+  /** Top-level menus: the groups with no parent group */
+  menuGroups: ModuleGroupVO[] = [];
+  /** Sub-menus (e.g. PMA > Setup) by parent group id */
+  subGroups = new Map<number, ModuleGroupVO[]>();
+  /** The sub-menu opened by click (touch/keyboard); hover opens one too */
+  openSubGroup: number | null = null;
   modules: ModuleVO[] = [];
   username = '';
   userInitials = '';
@@ -73,6 +79,7 @@ export class HomeComponent implements OnInit {
     this.userService.getPermittedModuleGroups().subscribe(
       (data: ModuleGroupVO[]) => {
         this.moduleGroups = data;
+        this.buildMenu(data);
         //console.log(this.moduleGroups);
         for (const moduleGroupVO of this.moduleGroups) {
           for (const module of moduleGroupVO.modules) {
@@ -82,6 +89,31 @@ export class HomeComponent implements OnInit {
         this.tabService.setKnownTitles(new Map(this.modules.map(m => [this.moduleUrl(m), m.name])));
       }
     );
+  }
+
+  /**
+   * The server sends every permitted group in one flat list, sorted by sequence; a group with a
+   * parentGroupID is a sub-menu of that parent. A parent the user has no modules in of its own is
+   * still shown, from the copy the server sends on its sub-group.
+   */
+  private buildMenu(groups: ModuleGroupVO[]) {
+    const top = new Map<number, ModuleGroupVO>();
+    for (const group of groups) {
+      if (!group.parentGroupID) {
+        top.set(group.id, group);
+      }
+    }
+    for (const group of groups) {
+      if (group.parentGroupID) {
+        if (!top.has(group.parentGroupID) && group.parentModuleGroup) {
+          top.set(group.parentGroupID, {...group.parentModuleGroup, modules: []});
+        }
+        const siblings = this.subGroups.get(group.parentGroupID) ?? [];
+        siblings.push(group);
+        this.subGroups.set(group.parentGroupID, siblings);
+      }
+    }
+    this.menuGroups = [...top.values()].sort((a, b) => a.sequenceNumber - b.sequenceNumber);
   }
 
   openModule(module: ModuleVO) {

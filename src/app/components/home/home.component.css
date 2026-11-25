@@ -83,3 +83,31 @@
   border-top: 1px solid var(--app-border);
   color: var(--app-muted);
 }
+
+/* Sub-menu inside a navbar dropdown (e.g. PMA > Setup): flies out to the right of its item */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dropdown-submenu-toggle .bi {
+  font-size: 10px;
+}
+
+.app-navbar .dropdown-submenu > .dropdown-menu {
+  position: absolute;
+  top: calc(-1 * var(--bs-dropdown-padding-y) - 1px);
+  left: 100%;
+  margin: 0;
+}
+
+.dropdown-submenu:hover > .dropdown-menu,
+.dropdown-submenu:focus-within > .dropdown-menu {
+  display: block;
+}
