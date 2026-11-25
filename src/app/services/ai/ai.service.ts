@@ -9,6 +9,7 @@ import {Injectable} from '@angular/core';
 import {HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {HttpService} from '../http.service';
+import {ownErrorHandling} from '../api-error';
 
 export interface AiPrompt {
   key: string;
@@ -56,10 +57,10 @@ export class AiService {
   }
 
   status(screen: string): Observable<AiStatus> {
-    return this.httpService.get('/api/ai/status', new HttpParams().set('screen', screen));
+    return this.httpService.get('/api/ai/status', new HttpParams().set('screen', screen), ownErrorHandling());
   }
 
   ask(screen: string, context: AiContext, prompt: string | null, question: string | null = null): Observable<AiAnswer> {
-    return this.httpService.post('/api/ai/ask', {screen, context, prompt, question});
+    return this.httpService.post('/api/ai/ask', {screen, context, prompt, question}, ownErrorHandling());
   }
 }

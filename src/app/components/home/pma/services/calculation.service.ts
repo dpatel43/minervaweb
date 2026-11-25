@@ -8,6 +8,7 @@
 import {Injectable} from '@angular/core';
 import {CalculationRequest} from "../data/calculation-request";
 import {HttpService} from "../../../../services/http.service";
+import {ownErrorHandling} from "../../../../services/api-error";
 import {Observable} from "rxjs";
 
 @Injectable({
@@ -19,6 +20,6 @@ export class CalculationService {
   }
 
   public runPerformance(request: CalculationRequest): Observable<any> {
-    return this.httpService.post("/api/pma/runPerformance", request);
+    return this.httpService.post("/api/pma/runPerformance", request, ownErrorHandling());
   }
 }

@@ -11,6 +11,7 @@ import {CalculationService} from "../../services/calculation.service";
 import {UntypedFormControl, UntypedFormGroup} from "@angular/forms";
 import {HttpErrorResponse} from "@angular/common/http";
 import {finalize} from "rxjs/operators";
+import {apiErrorMessage} from "../../../../../services/api-error";
 
 interface ProcessorRun {
   account: string;
@@ -80,7 +81,7 @@ export class ProcessorComponent implements OnInit {
         error: (error: HttpErrorResponse) => this.lastRun = {
           ...run,
           finishedAt: new Date(),
-          error: error?.error?.message || error?.message || 'The server returned an error.'
+          error: apiErrorMessage(error)
         }
       });
   }

@@ -1,0 +1,21 @@
+/* Page-level message (e.g. a failed API call): floats over the screen just under the navbar,
+   so it shows on every tab without moving the layout, until closed or the next action starts. */
+.app-alert {
+  position: fixed;
+  top: calc(var(--app-navbar-height, 38px) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  width: min(640px, calc(100vw - 32px));
+  margin: 0;
+  padding: 8px 12px;
+}
+
+.app-alert-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.app-alert .btn-close {
+  flex-shrink: 0;
+}

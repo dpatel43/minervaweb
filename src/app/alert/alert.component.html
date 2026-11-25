@@ -1,1 +1,5 @@
-<div *ngIf="message" [ngClass]="message.cssClass">{{message.text}}</div>
+<div *ngIf="message" class="app-alert d-flex align-items-start gap-2 shadow-sm" [ngClass]="message.cssClass" role="alert">
+  <i *ngIf="message.type === 'error'" class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+  <span class="flex-fill app-alert-text">{{ message.text }}</span>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>

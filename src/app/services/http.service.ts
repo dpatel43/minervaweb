@@ -6,7 +6,7 @@
  */
 
 import {Injectable, OnInit} from '@angular/core';
-import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
+import {HttpClient, HttpContext, HttpHeaders, HttpParams} from "@angular/common/http";
 import {Observable} from "rxjs";
 import {environment} from "../../environments/environment";
 
@@ -39,9 +39,10 @@ export class HttpService implements OnInit {
     return headers;
   }
 
-  public get(url: string, params? : HttpParams) : Observable<any> {
+  /** context: e.g. ownErrorHandling() from api-error.ts when the caller shows its own error */
+  public get(url: string, params? : HttpParams, context?: HttpContext) : Observable<any> {
     const requestOptions = this.createRequestHeader(JSON_CONTENT_TYPE);
-    return this.http.get(this.getURL(url), { headers: requestOptions, params: params });
+    return this.http.get(this.getURL(url), { headers: requestOptions, params: params, context });
   }
 
   getURL(baseUrl: string) {
@@ -54,9 +55,9 @@ export class HttpService implements OnInit {
     return this.http.put(this.getURL(url), body, {headers: requestOptions});
   }
 
-  public post(url: string, body: any) : Observable<any> {
+  public post(url: string, body: any, context?: HttpContext) : Observable<any> {
     const requestOptions = this.createRequestHeader(JSON_CONTENT_TYPE);
-    return this.http.post(this.getURL(url), body, { headers: requestOptions });
+    return this.http.post(this.getURL(url), body, { headers: requestOptions, context });
   }
 
   public multipart(url: string, formData: FormData) {

@@ -8,6 +8,7 @@
 import {Injectable} from '@angular/core';
 import {HttpService} from "../../../../../services/http.service";
 import {Observable} from "rxjs";
+import {HttpContext} from "@angular/common/http";
 import {PmaSummaryExportRequest} from "../../data/pmaexport/pma-summary-export-request";
 import {PmaSummaryExportResponse} from "../../data/pmaexport/pma-summary-export-response";
 import {PmaHistoryRequest} from '../../data/pma-history/pma-history-request';
@@ -22,11 +23,12 @@ export class PmaExportService {
   }
 
 
-  public runPmaSummaryExport(request: PmaSummaryExportRequest): Observable<PmaSummaryExportResponse> {
-    return this.httpService.post("/api/pma/export/runPmaSummaryExport", request);
+  /** context: ownErrorHandling() when the caller shows the error itself instead of the page alert */
+  public runPmaSummaryExport(request: PmaSummaryExportRequest, context?: HttpContext): Observable<PmaSummaryExportResponse> {
+    return this.httpService.post("/api/pma/export/runPmaSummaryExport", request, context);
   }
 
-  public runPmaHistory(request: PmaHistoryRequest): Observable<PmaHistoryResponse> {
-    return this.httpService.post("/api/pma/export/runPmaExport", request);
+  public runPmaHistory(request: PmaHistoryRequest, context?: HttpContext): Observable<PmaHistoryResponse> {
+    return this.httpService.post("/api/pma/export/runPmaExport", request, context);
   }
 }

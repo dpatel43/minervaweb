@@ -11,7 +11,7 @@ import {AlertService} from "../services/alert.service";
 
 
 @Component({
-  selector: 'alert', templateUrl: 'alert.component.html',
+  selector: 'alert', templateUrl: 'alert.component.html', styleUrls: ['alert.component.scss'],
   standalone: false
 })
 export class AlertComponent implements OnInit, OnDestroy {
@@ -34,6 +34,10 @@ export class AlertComponent implements OnInit, OnDestroy {
 
         this.message = message;
       });
+  }
+
+  close() {
+    this.alertService.clear();
   }
 
   ngOnDestroy() {

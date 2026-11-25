@@ -21,6 +21,7 @@ import {BarItem} from './diverging-bars.component';
 import {CumulativePoint} from './cumulative-return-chart.component';
 import {AssistantContextService} from '../../../../../services/ai/assistant-context.service';
 import {ActivatedRoute} from '@angular/router';
+import {apiErrorMessage, ownErrorHandling} from '../../../../../services/api-error';
 
 /** Values on the dashboard: percentages, two decimals */
 export const DASHBOARD_DIGITS = '.2-2';
@@ -133,13 +134,13 @@ export class DashboardComponent {
       request.endDate = end;
       request.period = period;
       request.filterSecurities = true;
-      return this.pmaExportService.runPmaHistory(request);
+      return this.pmaExportService.runPmaHistory(request, ownErrorHandling());
     };
 
     this.loading = true;
     this.error = '';
     forkJoin({
-      summary: this.pmaExportService.runPmaSummaryExport(summary),
+      summary: this.pmaExportService.runPmaSummaryExport(summary, ownErrorHandling()),
       daily: history('D'),
       cumulative: history('C')
     }).pipe(finalize(() => this.loading = false))
@@ -162,7 +163,7 @@ export class DashboardComponent {
         },
         error: e => {
           console.error('Dashboard request failed', e);
-          this.error = 'The dashboard could not be loaded. Please try again.';
+          this.error = apiErrorMessage(e);
         }
       });
   }
