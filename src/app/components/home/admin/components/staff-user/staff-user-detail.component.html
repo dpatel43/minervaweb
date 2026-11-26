@@ -44,7 +44,8 @@
                  id="username" name="username" required>
           <div class="invalid-feedback">Username is required</div>
         </div>
-        <div class="col-12 col-md-4">
+        <!-- A password is set only when the user is created: the server never sends it back -->
+        <div *ngIf="!staffUser.staffUserId" class="col-12 col-md-4">
           <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
           <input #password="ngModel" [(ngModel)]="staffUser.user.password"
                  [class.is-invalid]="password.invalid && password.touched" autocomplete="new-password"
