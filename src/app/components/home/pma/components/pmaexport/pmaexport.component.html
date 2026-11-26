@@ -55,6 +55,7 @@
       </div>
     </div>
   </form>
+  <app-data-warnings [warnings]="warnings"></app-data-warnings>
 
   <aside *ngIf="dataSource && selectedRow" aria-label="Charts for the selected row" class="card charts-card">
     <app-pma-return-charts (periodChange)="chartPeriod = $event" [parent]="selectedParent"

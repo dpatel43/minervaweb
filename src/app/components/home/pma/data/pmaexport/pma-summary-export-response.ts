@@ -9,4 +9,6 @@ import {PmaSummaryExportRow} from "./pma-summary-export-row";
 
 export class PmaSummaryExportResponse {
   exportRows: PmaSummaryExportRow[];
+  /** Problems with the data behind the numbers, e.g. the benchmark has no results on some days */
+  warnings?: string[];
 }

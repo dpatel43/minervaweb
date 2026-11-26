@@ -146,6 +146,8 @@ export class AttributionComponent {
   visibleRows = 0;
 
   loading = false;
+  /** The response's data warnings, shown above the results (app-data-warnings) */
+  warnings: string[] = [];
   exporting = false;
   exportError = '';
 
@@ -226,9 +228,11 @@ export class AttributionComponent {
     request.period = period || 'C';
     request.filterSecurities = !!filterSecurities;
     this.loading = true;
+    this.warnings = [];
     this.pmaExportService.runPmaHistory(request)
       .pipe(finalize(() => this.loading = false))
       .subscribe((data: PmaHistoryResponse) => {
+        this.warnings = data.warnings ?? [];
         this.retrieved = {
           accountId: account.id, benchmarkId: benchmark.id, profileId: profile.id,
           startDate: formatDate(start, 'yyyy-MM-dd', this.locale), endDate: formatDate(end, 'yyyy-MM-dd', this.locale)
