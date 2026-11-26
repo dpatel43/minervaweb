@@ -30,6 +30,11 @@
   </div>
   <ng-container *ngIf="result.status === 'ok'; else notAnswered">
     <p *ngFor="let p of paragraphs">{{ p }}</p>
+    <!-- With an answer, a message is a warning about it, e.g. it was cut off at the length limit -->
+    <div *ngIf="result.message" class="assistant-warning" role="alert">
+      <i aria-hidden="true" class="bi bi-exclamation-triangle"></i>
+      {{ result.message }}
+    </div>
     <div *ngIf="result.unknownNumbers?.length" class="assistant-warning" role="alert">
       <i aria-hidden="true" class="bi bi-exclamation-triangle"></i>
       Check this answer: {{ result.unknownNumbers.join(', ') }} {{ result.unknownNumbers.length === 1 ? 'is' : 'are' }}

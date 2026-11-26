@@ -72,6 +72,15 @@ describe('AssistantComponent', () => {
     expect(fixture.nativeElement.querySelector('.assistant-warning').textContent).toContain('4.08 is');
   });
 
+  it('shows the answer with a warning when it was cut off', () => {
+    create(status);
+    ai.ask.and.returnValue(of({...answer, message: 'This answer was cut off at the length limit, so it may be incomplete.'}));
+    buttons()[0].click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Growth Equity trailed by 3.84 points.');
+    expect(fixture.nativeElement.querySelector('.assistant-warning').textContent).toContain('cut off');
+  });
+
   it('says so when the assistant is off, with no prompts', () => {
     create({available: false, freeText: false, prompts: []});
     expect(buttons().length).toBe(0);
