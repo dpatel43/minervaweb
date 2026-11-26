@@ -174,6 +174,8 @@ export class PmaHistoryComponent {
   visibleMetrics: Record<MetricGroup, Metric[]> = {account: [], benchmark: []};
 
   loading = false;
+  /** The response's data warnings, shown above the results (app-data-warnings) */
+  warnings: string[] = [];
   exporting = false;
   exportError = '';
 
@@ -373,9 +375,11 @@ export class PmaHistoryComponent {
     calculationRequest.period = this.exportForm.value.period;
     console.log(calculationRequest.endDate);
     this.loading = true;
+    this.warnings = [];
     this.pmaExportService.runPmaHistory(calculationRequest)
       .pipe(finalize(() => this.loading = false))
       .subscribe((data: PmaHistoryResponse) => {
+        this.warnings = data.warnings ?? [];
         this.convertResponse(data);
         const {account, benchmark, profile, start, end} = this.exportForm.value;
         this.assistant.publish('history', {

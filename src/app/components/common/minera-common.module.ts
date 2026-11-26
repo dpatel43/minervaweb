@@ -25,6 +25,7 @@ import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatDividerModule} from "@angular/material/divider";
 import {NumberValuePipe} from './pipes/number-value.pipe';
 import {DecimalsControlComponent} from './decimals-control/decimals-control.component';
+import {DataWarningsComponent} from './data-warnings/data-warnings.component';
 import {AssistantComponent} from './assistant/assistant.component';
 
 const COMMON_COMPONENTS = [
@@ -33,7 +34,7 @@ const COMMON_COMPONENTS = [
   FitGridHeightDirective,
   TableExportMenuComponent,
   DecimalsControlComponent,
-  NumberValuePipe, AssistantComponent
+  NumberValuePipe, AssistantComponent, DataWarningsComponent
 ];
 
 const MODULES = [

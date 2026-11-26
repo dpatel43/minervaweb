@@ -66,6 +66,8 @@ export class DashboardComponent {
 
   exportForm: FormGroup;
   loading = false;
+  /** The response's data warnings, shown above the results (app-data-warnings) */
+  warnings: string[] = [];
   error = '';
   /** Names and dates of what is shown (the form may have changed since) */
   shown: { account: string; benchmark: string; start: string; end: string } | null = null;
@@ -139,6 +141,7 @@ export class DashboardComponent {
 
     this.loading = true;
     this.error = '';
+    this.warnings = [];
     forkJoin({
       summary: this.pmaExportService.runPmaSummaryExport(summary, ownErrorHandling()),
       daily: history('D'),
@@ -146,6 +149,8 @@ export class DashboardComponent {
     }).pipe(finalize(() => this.loading = false))
       .subscribe({
         next: ({summary: s, daily, cumulative}) => {
+          // The three exports overlap, so the same problem can come back from more than one
+          this.warnings = [...new Set([...(s.warnings ?? []), ...(daily.warnings ?? []), ...(cumulative.warnings ?? [])])];
           this.shown = {
             account: account.displayValue ?? String(account.id),
             benchmark: benchmark.displayValue ?? String(benchmark.id),

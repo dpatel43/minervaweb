@@ -100,6 +100,8 @@ export class PMAExportComponent implements OnInit {
     return columns;
   }
   loading = false;
+  /** The response's data warnings, shown above the results (app-data-warnings) */
+  warnings: string[] = [];
   exporting = false;
   exportError = '';
 
@@ -237,9 +239,11 @@ export class PMAExportComponent implements OnInit {
     calculationRequest.filterSecurities = !!this.exportForm.value.filterSecurities;
 
     this.loading = true;
+    this.warnings = [];
     this.pmaExportService.runPmaSummaryExport(calculationRequest)
       .pipe(finalize(() => this.loading = false))
       .subscribe((data: PmaSummaryExportResponse) => {
+        this.warnings = data.warnings ?? [];
         this.setBenchmarkShown(!!benchmark?.id);
         this.convertResponse(data);
         this.assistant.publish('summary', {
