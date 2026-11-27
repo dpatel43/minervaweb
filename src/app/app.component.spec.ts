@@ -2,6 +2,7 @@ import { TestBed, waitForAsync } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { AlertComponent } from './alert/alert.component';
 import { AppComponent } from './app.component';
+import { apiTestingProviders } from './testing/test-providers';
 
 describe('AppComponent', () => {
   beforeEach(waitForAsync(() => {
@@ -13,6 +14,7 @@ describe('AppComponent', () => {
         AppComponent,
         AlertComponent
       ],
+      providers: [...apiTestingProviders]
     }).compileComponents();
   }));
 

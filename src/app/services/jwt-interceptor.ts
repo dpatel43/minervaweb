@@ -5,33 +5,33 @@
  *
  */
 
-import {Injectable} from '@angular/core';
+import {Injectable, Injector} from '@angular/core';
 import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from "@angular/common/http";
 import {Observable, throwError} from "rxjs";
 import {catchError} from "rxjs/operators";
 import {AuthenticationService} from "./authentication.service";
 import {AlertService} from "./alert.service";
 import {apiErrorMessage, OWN_ERROR_HANDLING} from "./api-error";
+import {SessionService} from "./session.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class JwtInterceptor implements HttpInterceptor {
 
-  constructor(private authenticationService: AuthenticationService, private alertService: AlertService) {}
+  // SessionService is looked up when needed: it depends on services that use HttpClient, which needs this
+  constructor(private authenticationService: AuthenticationService, private alertService: AlertService,
+              private injector: Injector) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-     if (this.authenticationService.isLoggedIn) {
-       if (localStorage.getItem('loginResponse')) {
-         const loginResponseString = localStorage.getItem("loginResponse");
-         let token = loginResponseString == null ? "" : JSON.parse(loginResponseString).token;
-         request = request.clone({
-           setHeaders: {
-             Authorization: token
-           }
-         });
-       }
-     }
+    const token = this.authenticationService.loggedInNow ? this.authenticationService.token : '';
+    if (token) {
+      request = request.clone({
+        setHeaders: {
+          Authorization: token
+        }
+      });
+    }
 
     // A failed call shows the server's message in the page alert, unless the caller shows its own
     // (OWN_ERROR_HANDLING) or it is the login, whose form reports it. The error still reaches the caller.
@@ -42,6 +42,12 @@ export class JwtInterceptor implements HttpInterceptor {
     }
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
+        // The server won't take our token (expired, or signed with a key it no longer uses): the session is over.
+        // Not for /login, where 401 means a wrong password, nor for a call sent without a token.
+        if (error.status === 401 && token && !request.url.endsWith('/login')) {
+          this.injector.get(SessionService).expire();
+          return throwError(() => error);
+        }
         if (showAlert) {
           this.alertService.error(apiErrorMessage(error));
         }

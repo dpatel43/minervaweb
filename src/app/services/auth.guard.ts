@@ -1,34 +1,31 @@
 import {Injectable} from '@angular/core';
-import {ActivatedRouteSnapshot, Router, RouterStateSnapshot} from '@angular/router';
-import {Observable} from 'rxjs';
+import {ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {AuthenticationService} from "./authentication.service";
-import {map, take} from "rxjs/operators";
+import {SessionService} from "./session.service";
 
 @Injectable()
 export class AuthGuard {
 
   constructor(
     private router: Router,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private sessionService: SessionService
   ) {
   }
 
 
-  canActivate(
-    next: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-    return this.authenticationService.isLoggedIn.pipe(
-      take(1),
-      map((isLoggedIn: boolean) => {
-        if (!isLoggedIn) {
-          this.router.navigate(['/login']);
-          return false;
-        } else {
-          this.router.navigate(['/home']);
-        }
-        return true;
-      })
-    );
+  /**
+   * Without a valid session (signed in, token not expired) any guarded route goes to the login page; a stale
+   * one is ended the usual way, so the user is told it expired. With one, the app root goes to /home and
+   * anything else opens as asked.
+   */
+  canActivate(next: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree {
+    if (!this.authenticationService.hasValidSession()) {
+      if (this.authenticationService.loggedInNow) {
+        this.sessionService.expire();
+      }
+      return this.router.createUrlTree(['/login']);
+    }
+    return state.url === '/' ? this.router.createUrlTree(['/home']) : true;
   }
-
 }

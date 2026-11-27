@@ -6,6 +6,7 @@
  */
 
 import {Component} from '@angular/core';
+import {SessionService} from './services/session.service';
 
 @Component({
   selector: 'app-root',
@@ -15,4 +16,9 @@ import {Component} from '@angular/core';
 })
 export class AppComponent {
   title = 'minervaweb';
+
+  // Created with the app, so an expired session is ended even while no screen calls the server
+  constructor(session: SessionService) {
+    session.check();
+  }
 }
