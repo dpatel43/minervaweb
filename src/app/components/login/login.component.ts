@@ -32,9 +32,10 @@ export class LoginComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private alertService: AlertService
   ) {
-    // redirect to home if already logged in
-    if (this.authenticationService.isLoggedIn) {
-      this.router.navigate(['/']);
+    // Already signed in with a live token: straight to home. (isLoggedIn is an Observable, so testing it here
+    // was always true and sent an expired session back to home instead of letting the user sign in.)
+    if (this.authenticationService.hasValidSession()) {
+      this.router.navigate(['/home']);
     }
   }
 
