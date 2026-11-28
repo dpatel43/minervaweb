@@ -7,7 +7,8 @@
 
 import {Component, Inject, LOCALE_ID} from '@angular/core';
 import {formatDate} from '@angular/common';
-import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
+import {FormBuilder, FormGroup, UntypedFormControl, Validators} from '@angular/forms';
+import {FormCheck, FormValidators, today} from '../../../common/form-validation/form-validation';
 import {MatTreeFlatDataSource, MatTreeFlattener} from '@angular/material/tree';
 import {FlatTreeControl} from '@angular/cdk/tree';
 import {Sort} from '@angular/material/sort';
@@ -114,6 +115,10 @@ export class AttributionComponent {
   }
 
   exportForm: FormGroup;
+  /** The input form's error messages */
+  readonly check: FormCheck;
+  /** The latest date the pickers offer */
+  readonly maxDate = today();
 
   treeControl = new FlatTreeControl<FlatNode>(node => node.level, node => node.expandable);
   dataSource: MatTreeFlatDataSource<any, any>;
@@ -158,14 +163,15 @@ export class AttributionComponent {
               @Inject(LOCALE_ID) private locale: string, private assistant: AssistantContextService, route: ActivatedRoute) {
     this.tabUrl = AssistantContextService.tabUrlOf(route);
     this.exportForm = this.formBuilder.group({
-      account: new UntypedFormControl(),
-      benchmark: new UntypedFormControl(),
-      profile: new UntypedFormControl(),
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
+      account: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+      benchmark: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+      profile: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+      start: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture]),
+      end: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture]),
       period: new UntypedFormControl('C'),
       filterSecurities: [false]
-    });
+    }, {validators: [FormValidators.dateOrder(), FormValidators.differentAccounts()]});
+    this.check = new FormCheck(this.exportForm);
     this.updateColumns();
   }
 
@@ -202,19 +208,8 @@ export class AttributionComponent {
     return Object.values(this.columnFilters).filter(v => !!v?.trim()).length;
   }
 
-  get canRetrieve(): boolean {
-    const {account, benchmark, profile, start, end} = this.exportForm.value;
-    return !!account?.id && !!benchmark?.id && !!profile?.id && !!start && !!end;
-  }
-
-  /** The same account on both sides has no attribution to show */
-  get sameAccount(): boolean {
-    const {account, benchmark} = this.exportForm.value;
-    return !!account?.id && account.id === benchmark?.id;
-  }
-
   onSubmit() {
-    if (!this.canRetrieve || this.sameAccount || this.loading) {
+    if (this.loading || !this.check.submit()) {
       return;
     }
     const {account, benchmark, profile, start, end, period, filterSecurities} = this.exportForm.value;

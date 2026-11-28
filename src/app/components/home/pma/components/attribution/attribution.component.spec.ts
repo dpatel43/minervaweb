@@ -57,12 +57,31 @@ describe('AttributionComponent', () => {
   });
 
   it('asks for a benchmark that is not the account', () => {
+    const spy = spyOn(TestBed.inject(PmaExportService), 'runPmaHistory');
     fill(100010, 100010);
-    expect(component.canRetrieve).toBeTrue();
-    expect(component.sameAccount).toBeTrue();
+    component.onSubmit();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('button[type=submit]').disabled).toBeTrue();
-    expect(fixture.nativeElement.textContent).toContain('Choose a benchmark other than the account.');
+    expect(spy).not.toHaveBeenCalled();
+    expect(component.check.error('benchmark')).toBe('Same as the account');
+    expect(fixture.nativeElement.textContent).toContain('Same as the account');
+  });
+
+  it('marks what is missing when Retrieve is pressed on an empty form', () => {
+    const spy = spyOn(TestBed.inject(PmaExportService), 'runPmaHistory');
+    component.onSubmit();
+    fixture.detectChanges();
+    expect(spy).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelectorAll('.field-error').length).toBe(5);
+    expect(fixture.nativeElement.querySelectorAll('.is-invalid').length).toBe(5);
+  });
+
+  it('wants the end date on or after the start date', () => {
+    const spy = spyOn(TestBed.inject(PmaExportService), 'runPmaHistory');
+    fill(100010, 100009);
+    component.exportForm.patchValue({start: new Date(2026, 0, 2), end: new Date(2026, 0, 1)});
+    component.onSubmit();
+    expect(spy).not.toHaveBeenCalled();
+    expect(component.check.error('end')).toBe('Before the start date');
   });
 
   it('requests the account against the chosen benchmark, cumulative by default', () => {

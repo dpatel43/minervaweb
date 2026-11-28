@@ -68,11 +68,20 @@ describe('DashboardComponent', () => {
   });
 
   it('asks for everything, and a benchmark other than the account', () => {
-    expect(component.canRetrieve).toBeFalse();
+    expect(component.exportForm.valid).toBeFalse();
     fill(100010);
-    expect(component.sameAccount).toBeTrue();
+    expect(component.exportForm.hasError('sameAccount')).toBeTrue();
     fill(100009);
-    expect(component.canRetrieve && !component.sameAccount).toBeTrue();
+    expect(component.exportForm.valid).toBeTrue();
+  });
+
+  it('refuses an as-of date in the future', () => {
+    fill(100009);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    component.exportForm.patchValue({end: tomorrow});
+    expect(component.check.submit()).toBeFalse();
+    expect(component.check.error('end')).toBe('Can\'t be in the future');
   });
 
   it('loads the summary, the daily history and the cumulative history for the same account and benchmark', () => {

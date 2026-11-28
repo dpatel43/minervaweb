@@ -8,42 +8,47 @@
 <div class="report-page">
   <form (ngSubmit)="onSubmit()" [formGroup]="exportForm" class="card filter-bar">
     <div class="card-body">
-      <div class="row g-2 align-items-end">
+      <div class="row g-2 align-items-start">
         <div class="col-auto filter-field">
-          <label class="form-label" for="account">Account</label>
-          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" inputId="account"
-                                     placeholder="Search account" required>
+          <label class="form-label required" for="account">Account</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" [invalid]="check.invalid('account')" formControlName="account" inputId="account"
+                                     placeholder="Search account">
           </app-minerva-auto-complete>
+          <div *ngIf="check.error('account') as message" class="small field-error" role="alert">{{ message }}</div>
         </div>
         <div class="col-auto filter-field">
           <label class="form-label" for="benchmark">Benchmark</label>
-          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="benchmark" inputId="benchmark"
+          <app-minerva-auto-complete [cacheName]="'accountCache'" [invalid]="check.invalid('benchmark')" formControlName="benchmark" inputId="benchmark"
                                      placeholder="Optional">
           </app-minerva-auto-complete>
+          <div *ngIf="check.error('benchmark') as message" class="small field-error" role="alert">{{ message }}</div>
         </div>
         <div class="col-auto filter-field">
-          <label class="form-label" for="profile">Profile</label>
-          <app-minerva-auto-complete [cacheName]="'profileCache'" formControlName="profile" inputId="profile"
-                                     placeholder="Search profile" required>
+          <label class="form-label required" for="profile">Profile</label>
+          <app-minerva-auto-complete [cacheName]="'profileCache'" [invalid]="check.invalid('profile')" formControlName="profile" inputId="profile"
+                                     placeholder="Search profile">
           </app-minerva-auto-complete>
+          <div *ngIf="check.error('profile') as message" class="small field-error" role="alert">{{ message }}</div>
         </div>
         <div class="col-auto filter-field-sm">
-          <label class="form-label" for="start">Start date</label>
+          <label class="form-label required" for="start">Start date</label>
           <div class="input-group flex-nowrap date-input">
-            <input [matDatepicker]="start" class="form-control" formControlName="start" id="start"
+            <input [class.is-invalid]="check.invalid('start')" [max]="maxDate" [matDatepicker]="start" class="form-control" formControlName="start" id="start"
                    placeholder="MM/DD/YYYY">
             <mat-datepicker-toggle [for]="start"></mat-datepicker-toggle>
             <mat-datepicker #start></mat-datepicker>
           </div>
+          <div *ngIf="check.error('start') as message" class="small field-error" role="alert">{{ message }}</div>
         </div>
         <div class="col-auto filter-field-sm">
-          <label class="form-label" for="end">End date</label>
+          <label class="form-label required" for="end">End date</label>
           <div class="input-group flex-nowrap date-input">
-            <input [matDatepicker]="end" class="form-control" formControlName="end" id="end"
+            <input [class.is-invalid]="check.invalid('end')" [max]="maxDate" [min]="exportForm.value.start" [matDatepicker]="end" class="form-control" formControlName="end" id="end"
                    placeholder="MM/DD/YYYY">
             <mat-datepicker-toggle [for]="end"></mat-datepicker-toggle>
             <mat-datepicker #end></mat-datepicker>
           </div>
+          <div *ngIf="check.error('end') as message" class="small field-error" role="alert">{{ message }}</div>
         </div>
         <div class="col-auto filter-field-sm">
           <label class="form-label" for="period">Period</label>
@@ -51,20 +56,19 @@
                                     inputId="period"></app-minerva-cache-select>
         </div>
         <div class="col-auto">
-          <div class="form-check mb-1">
+          <label aria-hidden="true" class="form-label invisible d-block">Options</label>
+          <div class="form-check filter-action mb-0">
             <input class="form-check-input" formControlName="filterSecurities" id="filterSecurities"
                    type="checkbox">
             <label class="form-check-label" for="filterSecurities">Filter securities</label>
           </div>
         </div>
         <div class="col-auto">
-          <button [disabled]="!canRetrieve || sameAccount || loading" class="btn btn-primary" type="submit">
+          <label aria-hidden="true" class="form-label invisible d-block">Retrieve</label>
+          <button [disabled]="loading" class="btn btn-primary" type="submit">
             <span *ngIf="loading" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
             Retrieve
           </button>
-        </div>
-        <div *ngIf="sameAccount" class="col-auto">
-          <span class="text-danger small" role="alert">Choose a benchmark other than the account.</span>
         </div>
       </div>
     </div>

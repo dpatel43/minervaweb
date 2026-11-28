@@ -15,7 +15,8 @@ import {PmaSummaryExportRequest} from "../../data/pmaexport/pma-summary-export-r
 import {PmaExportService} from "../../services/pmaexport/pma-export.service";
 import {PmaSummaryExportRow} from "../../data/pmaexport/pma-summary-export-row";
 import {PmaSummaryExportResponse} from "../../data/pmaexport/pma-summary-export-response";
-import {UntypedFormControl, UntypedFormGroup} from "@angular/forms";
+import {UntypedFormControl, UntypedFormGroup, Validators} from "@angular/forms";
+import {FormCheck, FormValidators, today} from '../../../common/form-validation/form-validation';
 import {AssistantContextService} from '../../../../../services/ai/assistant-context.service';
 import {ActivatedRoute} from '@angular/router';
 
@@ -60,14 +61,19 @@ interface ExampleFlatNode {
 export class PMAExportComponent implements OnInit {
 
   exportForm = new UntypedFormGroup({
-    account: new UntypedFormControl(),
+    account: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
     /** Optional: with one, each period shows the portfolio's and the benchmark's return */
-    benchmark: new UntypedFormControl(),
-    profile: new UntypedFormControl(),
-    end: new UntypedFormControl(),
+    benchmark: new UntypedFormControl(null, FormValidators.picked),
+    profile: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+    end: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture]),
     /** Leave out the security rows, so only the segments come back */
     filterSecurities: new UntypedFormControl(false)
-  });
+  }, {validators: FormValidators.differentAccounts()});
+
+  /** The input form's error messages */
+  readonly check = new FormCheck(this.exportForm);
+  /** The latest date the pickers offer */
+  readonly maxDate = today();
 
 
   readonly periods = [
@@ -212,19 +218,8 @@ export class PMAExportComponent implements OnInit {
     // this.onSubmit();
   }
 
-  get canRetrieve(): boolean {
-    const {account, profile, end} = this.exportForm.value;
-    return !!account?.id && !!profile?.id && !!end;
-  }
-
-  /** The account can't be its own benchmark */
-  get sameAccount(): boolean {
-    const {account, benchmark} = this.exportForm.value;
-    return !!account?.id && account.id === benchmark?.id;
-  }
-
   onSubmit() {
-    if (!this.canRetrieve || this.sameAccount || this.loading) {
+    if (this.loading || !this.check.submit()) {
       return;
     }
     let calculationRequest = new PmaSummaryExportRequest();
