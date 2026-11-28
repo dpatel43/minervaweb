@@ -8,7 +8,8 @@
 import {Component, OnInit} from '@angular/core';
 import {CalculationRequest} from "../../data/calculation-request";
 import {CalculationService} from "../../services/calculation.service";
-import {UntypedFormControl, UntypedFormGroup} from "@angular/forms";
+import {UntypedFormControl, UntypedFormGroup, Validators} from "@angular/forms";
+import {FormCheck, FormValidators, today} from "../../../common/form-validation/form-validation";
 import {HttpErrorResponse} from "@angular/common/http";
 import {finalize} from "rxjs/operators";
 import {apiErrorMessage} from "../../../../../services/api-error";
@@ -30,12 +31,17 @@ interface ProcessorRun {
 export class ProcessorComponent implements OnInit {
 
   userForm = new UntypedFormGroup({
-    account: new UntypedFormControl(),
+    account: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
     range: new UntypedFormGroup({
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl()
-    })
+      start: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture]),
+      end: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture])
+    }, {validators: FormValidators.dateOrder()})
   });
+
+  /** The input form's error messages */
+  readonly check = new FormCheck(this.userForm);
+  /** The latest date the pickers offer */
+  readonly maxDate = today();
 
   running = false;
   /** Outcome of the most recent run, shown under the form */
@@ -47,19 +53,8 @@ export class ProcessorComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  /** End date is set and earlier than the start date */
-  get rangeInvalid(): boolean {
-    const {start, end} = this.userForm.value.range ?? {};
-    return !!start && !!end && new Date(end) < new Date(start);
-  }
-
-  get canRun(): boolean {
-    const {account, range} = this.userForm.value;
-    return !!account?.id && !!range?.start && !!range?.end && !this.rangeInvalid;
-  }
-
   onSubmit() {
-    if (!this.canRun || this.running) {
+    if (this.running || !this.check.submit()) {
       return;
     }
     let calculationRequest = new CalculationRequest();

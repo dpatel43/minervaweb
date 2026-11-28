@@ -741,6 +741,45 @@ th.num {
   width: 130px;
 }
 
+/* Input checks (FormCheck): a required field's label gets a red star; an error shows under its field, which
+   the bar's align-items-start keeps from moving the others. Columns without a label (Retrieve, checkboxes) use
+   .filter-action to line up with the inputs. */
+.filter-bar .form-label.required::after {
+  content: ' *';
+  color: var(--bs-form-invalid-color);
+}
+
+.filter-bar .form-control.is-invalid {
+  background-image: none;
+  padding-right: var(--bs-form-select-padding-x, 0.75rem);
+}
+
+.date-input:has(.is-invalid) .mat-datepicker-toggle {
+  border-color: var(--bs-form-invalid-border-color);
+}
+
+.filter-bar .field-error {
+  color: var(--bs-form-invalid-color);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.filter-bar .filter-action {
+  display: flex;
+  align-items: center;
+  min-height: var(--app-control-height);
+}
+
+.filter-bar .form-check.filter-action {
+  padding-left: 0;
+  gap: 0.4em;
+}
+
+.filter-bar .form-check.filter-action .form-check-input {
+  float: none;
+  margin: 0;
+}
+
 /* Bootstrap input + Material datepicker toggle */
 .date-input .mat-datepicker-toggle {
   display: flex;

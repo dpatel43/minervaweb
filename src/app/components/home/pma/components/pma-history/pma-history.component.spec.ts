@@ -54,7 +54,7 @@ describe('PmaHistoryComponent', () => {
     component.onSubmit();
     expect(spy.calls.mostRecent().args[0].benchmarkId).toBe(100009);
     fill(100010);
-    expect(component.sameAccount).toBeTrue();
+    expect(component.exportForm.hasError('sameAccount')).toBeTrue();
     component.onSubmit();
     expect(spy.calls.count()).toBe(2);
   });

@@ -26,4 +26,21 @@ describe('MinervaAutoCompleteComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('drops the earlier pick when the text is changed or cleared', () => {
+    const changes: unknown[] = [];
+    component.registerOnChange(v => changes.push(v));
+    component.writeValue({id: 1, displayValue: 'Growth Equity'} as any);
+    expect(changes).toEqual([]);
+    component.searchResultCtrl.setValue('Growth Eq');
+    component.searchResultCtrl.setValue('  ');
+    expect(changes).toEqual(['Growth Eq', null]);
+  });
+
+  it('reports touched when the input is left with no suggestions open', () => {
+    const touched = jasmine.createSpy('touched');
+    component.registerOnTouched(touched);
+    fixture.nativeElement.querySelector('input').dispatchEvent(new Event('blur'));
+    expect(touched).toHaveBeenCalled();
+  });
 });

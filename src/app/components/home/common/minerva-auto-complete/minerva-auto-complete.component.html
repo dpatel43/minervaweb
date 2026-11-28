@@ -1,6 +1,6 @@
-<input [attr.id]="inputId" [formControl]="searchResultCtrl" [matAutocomplete]="auto" [placeholder]="placeholder"
+<input (blur)="onBlur()" [attr.id]="inputId" [class.is-invalid]="invalid" [formControl]="searchResultCtrl" [matAutocomplete]="auto" [placeholder]="placeholder"
        autocomplete="off" class="form-control" type="text">
-<mat-autocomplete #auto="matAutocomplete" (optionSelected)="onSelect($event.option.value)" [displayWith]="displayFn">
+<mat-autocomplete #auto="matAutocomplete" (closed)="onPanelClosed()" (optionSelected)="onSelect($event.option.value)" [displayWith]="displayFn">
   <mat-option *ngIf="isLoading" class="is-loading" disabled>Loading...</mat-option>
   <ng-container *ngIf="!isLoading">
     <mat-option *ngFor="let cacheResult of filteredResults" [value]="cacheResult">

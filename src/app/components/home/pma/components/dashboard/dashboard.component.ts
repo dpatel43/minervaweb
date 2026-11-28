@@ -7,7 +7,8 @@
 
 import {Component, Inject, LOCALE_ID} from '@angular/core';
 import {formatDate} from '@angular/common';
-import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
+import {FormBuilder, FormGroup, UntypedFormControl, Validators} from '@angular/forms';
+import {FormCheck, FormValidators, today} from '../../../common/form-validation/form-validation';
 import {forkJoin} from 'rxjs';
 import {finalize} from 'rxjs/operators';
 import {formatValue} from '../../../../common/pipes/number-format';
@@ -65,6 +66,10 @@ export class DashboardComponent {
   readonly digits = DASHBOARD_DIGITS;
 
   exportForm: FormGroup;
+  /** The input form's error messages */
+  readonly check: FormCheck;
+  /** The latest date the pickers offer */
+  readonly maxDate = today();
   loading = false;
   /** The response's data warnings, shown above the results (app-data-warnings) */
   warnings: string[] = [];
@@ -87,22 +92,13 @@ export class DashboardComponent {
               @Inject(LOCALE_ID) private locale: string, private assistant: AssistantContextService, route: ActivatedRoute) {
     this.tabUrl = AssistantContextService.tabUrlOf(route);
     this.exportForm = this.formBuilder.group({
-      account: new UntypedFormControl(),
-      benchmark: new UntypedFormControl(),
-      profile: new UntypedFormControl(),
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl()
-    });
-  }
-
-  get canRetrieve(): boolean {
-    const {account, benchmark, profile, start, end} = this.exportForm.value;
-    return !!account?.id && !!benchmark?.id && !!profile?.id && !!start && !!end;
-  }
-
-  get sameAccount(): boolean {
-    const {account, benchmark} = this.exportForm.value;
-    return !!account?.id && account.id === benchmark?.id;
+      account: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+      benchmark: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+      profile: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+      start: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture]),
+      end: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture])
+    }, {validators: [FormValidators.dateOrder(), FormValidators.differentAccounts()]});
+    this.check = new FormCheck(this.exportForm);
   }
 
   get hasData(): boolean {
@@ -114,7 +110,7 @@ export class DashboardComponent {
   }
 
   onSubmit() {
-    if (!this.canRetrieve || this.sameAccount || this.loading) {
+    if (this.loading || !this.check.submit()) {
       return;
     }
     const {account, benchmark, profile, start, end} = this.exportForm.value;

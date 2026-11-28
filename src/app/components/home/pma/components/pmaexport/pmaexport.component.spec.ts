@@ -64,7 +64,7 @@ describe('PMAExportComponent', () => {
       expect(component.displayedColumns.length).toBe(1 + component.periods.length);
 
       fill(100010);
-      expect(component.sameAccount).toBeTrue();
+      expect(component.exportForm.hasError('sameAccount')).toBeTrue();
       component.onSubmit();
       expect(spy.calls.count()).toBe(1);
     });

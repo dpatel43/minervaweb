@@ -5,7 +5,8 @@
  *
  */
 
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {MatAutocompleteTrigger} from '@angular/material/autocomplete';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormControl} from "@angular/forms";
 import {CacheResult} from "../../../../models/cache-result";
 import {debounceTime, finalize, switchMap, tap} from "rxjs/operators";
@@ -33,6 +34,9 @@ export class MinervaAutoCompleteComponent<T> implements OnInit, ControlValueAcce
   }
 
   displayFn(cacheResult: CacheResult<T>): string {
+    if (typeof cacheResult === 'string') {
+      return cacheResult;
+    }
     if (cacheResult != undefined) {
       return cacheResult.displayValue;
     }
@@ -49,7 +53,6 @@ export class MinervaAutoCompleteComponent<T> implements OnInit, ControlValueAcce
 
   onSelect(value: CacheResult<T>) {
     this.searchResultCtrl.setValue(value);
-    this.onChange(value);
   }
 
   @Input() colors: CacheResult<T>[] = [];
@@ -59,20 +62,46 @@ export class MinervaAutoCompleteComponent<T> implements OnInit, ControlValueAcce
 
   @Input() placeholder = 'Search';
 
-  private onChange: (value: CacheResult<T>) => void;
+  /** Shows the input with the invalid style; the form decides when */
+  @Input() invalid = false;
+
+  @ViewChild(MatAutocompleteTrigger) private trigger: MatAutocompleteTrigger;
+
+  /**
+   * Gets the picked item, null when the text is cleared, or the typed text while nothing is picked, so the form
+   * never keeps an earlier pick the input no longer shows
+   */
+  private onChange: (value: CacheResult<T> | string | null) => void = () => {
+  };
+  private onTouched: () => void = () => {
+  };
 
   writeValue(value: CacheResult<T>) {
-    this.searchResultCtrl.setValue(value);
+    this.searchResultCtrl.setValue(value, {emitEvent: false});
   }
 
-  registerOnChange(onChange: (value: CacheResult<T>) => void) {
+  registerOnChange(onChange: (value: CacheResult<T> | string | null) => void) {
     this.onChange = onChange;
   }
 
-  registerOnTouched() {
+  registerOnTouched(onTouched: () => void) {
+    this.onTouched = onTouched;
+  }
+
+  /** Leaving the input for the suggestions isn't leaving the field: that counts when the panel closes */
+  onBlur() {
+    if (!this.trigger?.panelOpen) {
+      this.onTouched();
+    }
+  }
+
+  onPanelClosed() {
+    this.onTouched();
   }
 
   ngOnInit() {
+    this.searchResultCtrl.valueChanges.subscribe(value =>
+      this.onChange(typeof value === 'string' && !value.trim() ? null : value));
     this.searchResultCtrl.valueChanges
       .pipe(
         debounceTime(500),

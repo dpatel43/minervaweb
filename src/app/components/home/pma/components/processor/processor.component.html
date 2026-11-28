@@ -4,42 +4,45 @@
     <div class="card-body">
       <div class="row g-2 align-items-start">
         <div class="col-auto filter-field">
-          <label class="form-label" for="account">Account</label>
-          <app-minerva-auto-complete [cacheName]="'accountCache'" formControlName="account" inputId="account"
-                                     placeholder="Search account" required>
+          <label class="form-label required" for="account">Account</label>
+          <app-minerva-auto-complete [cacheName]="'accountCache'" [invalid]="check.invalid('account')" formControlName="account"
+                                     inputId="account" placeholder="Search account">
           </app-minerva-auto-complete>
+          <div *ngIf="check.error('account') as message" class="small field-error" role="alert">{{ message }}</div>
         </div>
         <ng-container formGroupName="range">
           <div class="col-auto filter-field-sm">
-            <label class="form-label" for="start">Start date</label>
+            <label class="form-label required" for="start">Start date</label>
             <div class="input-group flex-nowrap date-input">
-              <input [class.is-invalid]="rangeInvalid" [matDatepicker]="startPicker" class="form-control"
-                     formControlName="start" id="start" placeholder="MM/DD/YYYY">
+              <input [class.is-invalid]="check.invalid('range.start')" [matDatepicker]="startPicker" [max]="maxDate"
+                     class="form-control" formControlName="start" id="start" placeholder="MM/DD/YYYY">
               <mat-datepicker-toggle [for]="startPicker"></mat-datepicker-toggle>
               <mat-datepicker #startPicker></mat-datepicker>
             </div>
+            <div *ngIf="check.error('range.start') as message" class="small field-error" role="alert">{{ message }}</div>
           </div>
           <div class="col-auto filter-field-sm">
-            <label class="form-label" for="end">End date</label>
-            <div class="input-group flex-nowrap date-input has-validation">
-              <input [class.is-invalid]="rangeInvalid" [matDatepicker]="endPicker" [min]="userForm.value.range?.start"
-                     class="form-control" formControlName="end" id="end" placeholder="MM/DD/YYYY">
+            <label class="form-label required" for="end">End date</label>
+            <div class="input-group flex-nowrap date-input">
+              <input [class.is-invalid]="check.invalid('range.end')" [matDatepicker]="endPicker" [max]="maxDate"
+                     [min]="userForm.value.range?.start" class="form-control" formControlName="end" id="end"
+                     placeholder="MM/DD/YYYY">
               <mat-datepicker-toggle [for]="endPicker"></mat-datepicker-toggle>
               <mat-datepicker #endPicker></mat-datepicker>
             </div>
+            <div *ngIf="check.error('range.end') as message" class="small field-error" role="alert">{{ message }}</div>
           </div>
         </ng-container>
         <div class="col-auto">
           <label aria-hidden="true" class="form-label invisible">Run</label>
           <div>
-            <button [disabled]="!canRun || running" class="btn btn-primary" type="submit">
+            <button [disabled]="running" class="btn btn-primary" type="submit">
               <span *ngIf="running" aria-hidden="true" class="spinner-border spinner-border-sm me-1"></span>
               <i *ngIf="!running" class="bi bi-play-fill me-1"></i>{{ running ? 'Running...' : 'Run processor' }}
             </button>
           </div>
         </div>
       </div>
-      <div *ngIf="rangeInvalid" class="text-danger mt-1">End date must be on or after the start date.</div>
     </div>
   </form>
 

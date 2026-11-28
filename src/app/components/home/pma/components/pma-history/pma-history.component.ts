@@ -9,7 +9,8 @@ import {Component, Inject, LOCALE_ID} from '@angular/core';
 import {formatDate} from '@angular/common';
 import {formatValue} from '../../../../common/pipes/number-format';
 import {AMOUNT_DIGITS, fixedDigits, loadDecimals, saveDecimals} from '../../../../common/decimals-control/decimals-control.component';
-import {FormBuilder, FormGroup, UntypedFormControl} from '@angular/forms';
+import {FormBuilder, FormGroup, UntypedFormControl, Validators} from '@angular/forms';
+import {FormCheck, FormValidators, today} from '../../../common/form-validation/form-validation';
 import {AssistantContextService} from '../../../../../services/ai/assistant-context.service';
 import {ActivatedRoute} from '@angular/router';
 
@@ -215,6 +216,10 @@ export class PmaHistoryComponent {
   }
 
   exportForm: FormGroup;
+  /** The input form's error messages */
+  readonly check: FormCheck;
+  /** The latest date the pickers offer */
+  readonly maxDate = today();
 
   private updateColumns() {
     for (const g of this.metricGroups) {
@@ -333,15 +338,16 @@ export class PmaHistoryComponent {
               @Inject(LOCALE_ID) private locale: string, private assistant: AssistantContextService, route: ActivatedRoute) {
     this.tabUrl = AssistantContextService.tabUrlOf(route);
     this.exportForm = this.formBuilder.group({
-      account: new UntypedFormControl(),
+      account: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
       /** Optional: without one the Benchmark columns stay empty */
-      benchmark: new UntypedFormControl(),
-      profile: new UntypedFormControl(),
-      start: new UntypedFormControl(),
-      end: new UntypedFormControl(),
+      benchmark: new UntypedFormControl(null, FormValidators.picked),
+      profile: new UntypedFormControl(null, [Validators.required, FormValidators.picked]),
+      start: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture]),
+      end: new UntypedFormControl(null, [Validators.required, FormValidators.notFuture]),
       filterSecurities: [false],
-      period: new UntypedFormControl()// Initial state of the checkbox
-    });
+      period: new UntypedFormControl()
+    }, {validators: [FormValidators.dateOrder(), FormValidators.differentAccounts()]});
+    this.check = new FormCheck(this.exportForm);
     this.updateColumns();
   }
 
@@ -350,19 +356,8 @@ export class PmaHistoryComponent {
   }
 
 
-  get canRetrieve(): boolean {
-    const {account, profile, start, end} = this.exportForm.value;
-    return !!account?.id && !!profile?.id && !!start && !!end;
-  }
-
-  /** The account can't be its own benchmark */
-  get sameAccount(): boolean {
-    const {account, benchmark} = this.exportForm.value;
-    return !!account?.id && account.id === benchmark?.id;
-  }
-
   onSubmit() {
-    if (!this.canRetrieve || this.sameAccount || this.loading) {
+    if (this.loading || !this.check.submit()) {
       return;
     }
     let calculationRequest = new PmaHistoryRequest();
